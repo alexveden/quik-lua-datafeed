@@ -39,3 +39,7 @@ luac.out
 *.x86_64
 *.hex
 
+# quik-lua-datafeed
+quik-lua-datafeed/config.lua
+tmux_run.sh
+experiments/

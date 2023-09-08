@@ -1,2 +1,3 @@
-# quik-lua-datafeed
-Universal QUIK LUA datafeed engine with support of multiple serialization formats and protocols
+# LUA Learning
+
+Sample lua code basics + tricks
