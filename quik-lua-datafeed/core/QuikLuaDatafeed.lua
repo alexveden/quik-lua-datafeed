@@ -1,8 +1,16 @@
 local json = require("core.json")
 
+---@class FeedStats
+---@field n_events number count of events processed by datafeed
+---@field max_que_length number maximum number of events waiting for processing in Quik que
+---@field current_que_length number most recent que length
+---@field subscriptions table per-event type statistics
+
+---@class QuikLuaDataFeed
+---@field config table QuikLuaDataFeed configuration table
+---@field stats FeedStats aggregated datafeed stats
 QuikLuaDataFeed = {
 	config = {},
-	valid = false,
 	stats = {
 		n_events = 0,
 		max_que_length = 0,
@@ -12,20 +20,23 @@ QuikLuaDataFeed = {
 }
 QuikLuaDataFeed.__index = QuikLuaDataFeed
 
+---Creates new instance of QuikLuaDataFeed class
+---@param config table - configuration table
+---@return QuikLuaDataFeed
 function QuikLuaDataFeed.new(config)
 	assert(config, "no config")
 
+	---@class QuikLuaDataFeed
 	local self = setmetatable({}, QuikLuaDataFeed)
-	-- self.config = config
+
+	self.config = config
 	self:initialize()
 	return self
 	-- return setmetatable(self, QuikLuaDataFeed)
 end
 
-function QuikLuaDataFeed:log(msg_templ, ...)
-	PrintDbgStr(string.format(msg_templ, ...))
-end
-
+---Initializes QuikLuaDataFeed instance and handlers
+---@return nil
 function QuikLuaDataFeed:initialize()
 	self:log("QuikLuaDataFeed: Initialized log")
 	-- Read config
@@ -35,16 +46,27 @@ function QuikLuaDataFeed:initialize()
 	-- Setup serializers
 end
 
-function QuikLuaDataFeed:stats_que_length(current_que_length)
+---Log debug information using pre-configured logger
+---@param msg_templ string log message optionally with string.format() magics
+---@vararg string | number | boolean | nil
+function QuikLuaDataFeed:log(msg_templ, ...)
+	-- PrintDbgStr(string.format(msg_templ, ...))
+end
+
+---Notification by Quik about length of current queue (just for stats)
+---@param current_que_length number
+function QuikLuaDataFeed:quik_notify_que_length(current_que_length)
 	assert(current_que_length, "current_que_length nil")
+
 	self.stats.current_que_length = current_que_length
 	self.stats.max_que_length = math.max(self.stats.current_que_length, current_que_length)
 end
 
--- Returns a table of all Quik Data events handlers
---  keys: the same as Quik event functions i.e. `AllQuote = true`
---  values: simple true
-function QuikLuaDataFeed:subscribed_events()
+---Returns a table of all Quik Data events handlers \
+---keys: the same as Quik event functions i.e. `AllQuote = true` \
+---values: simple true \
+---@return table
+function QuikLuaDataFeed:quik_get_subscribed_events()
 	-- TODO: implement handler / subscriptions
 	local e_subs = {
 		OnAllTrade = true,
@@ -59,20 +81,42 @@ function QuikLuaDataFeed:subscribed_events()
 	return e_subs
 end
 
+---Main Quik Event Handler
+---@param event table
+function QuikLuaDataFeed:quik_on_event(event)
+	local time_begin = os.clock()
+
+	assert(event, "nil event given")
+	assert(event.callback, "expected to have callback name")
+	self:log("Event %s", event.callback)
+
+	-- Recording event performance stats
+	self.stats.n_events = self.stats.n_events + 1
+	local n = self.stats.subscriptions[event.callback].n
+	self.stats.subscriptions[event.callback].n = n + 1
+
+	local time = self.stats.subscriptions[event.callback].time_sum
+	local elapsed = os.clock() - time_begin
+	self.stats.subscriptions[event.callback].time_sum = time + elapsed
+end
+
+---Returns QuikLuaDataFeed stats
+---@param as_json? boolean - return result as json string (default false)
+---@return table | string
 function QuikLuaDataFeed:get_stats(as_json)
 	as_json = as_json or false
 
 	local result = {}
 	for k, v in pairs(self.stats) do
 		if k == "subscriptions" then
-		    assert(type(v) == 'table')
+			assert(type(v) == "table")
 
 			local s = {}
 			for sk, sv in pairs(v) do
-			    local avg_per_call = 0
-			    if sv.n > 0 then
+				local avg_per_call = 0
+				if sv.n > 0 then
 					avg_per_call = sv.time_sum / sv.n
-			    end
+				end
 				s[sk] = {
 					count = sv.n,
 					avg_per_call = avg_per_call,
@@ -92,21 +136,5 @@ function QuikLuaDataFeed:get_stats(as_json)
 	end
 end
 
-function QuikLuaDataFeed:on_event(event)
-	local time_begin = os.clock()
-
-	assert(event, "nil event given")
-	assert(event.callback, "expected to have callback name")
-	self:log("Event %s", event.callback)
-
-	-- Recording event performance stats
-	self.stats.n_events = self.stats.n_events + 1
-	local n = self.stats.subscriptions[event.callback].n
-	self.stats.subscriptions[event.callback].n = n + 1
-
-	local time = self.stats.subscriptions[event.callback].time_sum
-	local elapsed = os.clock() - time_begin
-	self.stats.subscriptions[event.callback].time_sum = time + elapsed
-end
-
+-- Returns class
 return QuikLuaDataFeed
