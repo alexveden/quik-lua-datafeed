@@ -19,7 +19,7 @@ TestMock = {}
 function TestMock:setUp() end
 
 function TestMock:tearDown()
-	Mock.finalize()
+	Mock.global_finalize()
 	lu.assertEquals(Mock.global_count(), 0)
 end
 
@@ -29,9 +29,24 @@ function TestMock:test_mock_global__init()
 	lu.assertEquals(m.call_count, 0)
 	lu.assertEquals(m.name, "getInfoParam")
 
-	lu.assertErrorMsgContains("Global object is not found", Mock.g, "some-not_existing_global_func")
+	lu.assertErrorMsgContains("function is not found (or try with create_missing=true).", Mock.g, "some-not_existing_global_func")
 	lu.assertErrorMsgContains("Global object was already mocked:", Mock.g, "getInfoParam")
 	lu.assertEquals(Mock.global_count(), 1)
+end
+
+function TestMock:test_mock_global_with_dots()
+	-- WARNING: setting internal functions is possible but may lead to weird side effects!
+	local m = Mock.g("os.clock")
+	m.return_value = 77.01
+	lu.assertEquals(m.return_value, 77.01)
+	lu.assertEquals(m.call_count, 0)
+	lu.assertEquals(m.name, "os.clock")
+
+	lu.assertEquals(os.clock(), 77.01)
+	lu.assertEquals(m.call_count, 1)
+
+	Mock.global_finalize()
+	lu.assertNotEquals(os.clock(), 77.01)
 end
 
 function TestMock:test_mock_global__forbidden()
@@ -89,21 +104,6 @@ function TestMock:test_mock_side_effect_function()
 	local module_param = mock_test_module.param("mock test module")
 	lu.assertEquals(module_param, "side_effect with s: mock test module")
 	lu.assertEquals(m.call_count, 1)
-end
-
-function TestMock:test_mock_global_with_dots()
-	-- WARNING: setting internal functions is possible but may lead to weird side effects!
-	local m = Mock.g("os.clock")
-	m.return_value = 77.01
-	lu.assertEquals(m.return_value, 77.01)
-	lu.assertEquals(m.call_count, 0)
-	lu.assertEquals(m.name, "os.clock")
-
-	lu.assertEquals(os.clock(), 77.01)
-	lu.assertEquals(m.call_count, 1)
-
-	Mock.finalize()
-	lu.assertNotEquals(os.clock(), 77.01)
 end
 
 function TestMock:test_mock_call_args()

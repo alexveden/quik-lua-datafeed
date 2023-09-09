@@ -29,6 +29,60 @@ local GLOBAL_MOCKS_FORBIDDEN = {
 	["assert"] = true,
 }
 
+local function patch_table(tbl, fpath, create_missing, table_name, patch_func)
+	local _is_missing = false
+	local _tbl = tbl
+	local _t_orig_func = nil
+
+	if string.find(fpath, "%.") then
+		-- name with dots!
+		for t in string.gmatch(fpath, "([^.]+)") do
+			if _tbl[t] == nil then
+				_is_missing = true
+
+				if not create_missing then
+					error(
+						string.format(
+							"%s[%s]function is not found (or try with create_missing=true).",
+							table_name,
+							fpath
+						)
+					)
+				end
+			end
+
+			if type(_tbl[t]) == "table" then
+				_tbl = _tbl[t]
+			else
+				_t_orig_func = _tbl[t]
+
+				if type(_t_orig_func) == "function" or (create_missing and _is_missing) then
+					_tbl[t] = patch_func
+				else
+					error(string.format("%s[%s] is not a function, but %s", table_name, fpath, type(_t_orig_func)))
+				end
+			end
+		end
+	else
+		_t_orig_func = _tbl[fpath]
+		if _t_orig_func == nil then
+			_is_missing = true
+			if not create_missing then
+				error(
+					string.format("%s[%s] function is not found (or try with create_missing=true).", table_name, fpath)
+				)
+			end
+		end
+
+		if type(_t_orig_func) == "function" or (create_missing and _is_missing) then
+			_tbl[fpath] = patch_func
+		else
+			error(string.format("%s[%s] is not a function, but %s", table_name, fpath, type(_t_orig_func)))
+		end
+	end
+	return _t_orig_func
+end
+
 ---Creates mock for a global function
 ---@param global_name string global function name, for example 'print', 'os.clock', 'math.abs'
 ---@param create_missing? boolean force mock creation even if it's not found in _G (default: false)
@@ -46,53 +100,14 @@ function Mock.g(global_name, create_missing)
 		error("Global object was already mocked: " .. global_name)
 	end
 
-	local _g_func = nil
-	local _is_missing = false
+	local mock_func = function(...)
+		return self.__call(self, ...)
+	end
 
-	if string.find(global_name, "%.") then
-		-- name with dots!
-		local _g = _G
-		for t in string.gmatch(global_name, "([^.]+)") do
-			if _g[t] == nil then
-				_is_missing = true
+	local orig_func = patch_table(_G, global_name, create_missing, "_G", mock_func)
 
-				if not create_missing then
-					error("Global object is not found (or try with create_missing=true): " .. global_name)
-				end
-			end
-
-			if type(_g[t]) == "table" then
-				_g = _g[t]
-			else
-				_g_func = _g[t]
-
-				if type(_g_func) == "function" or (create_missing and _is_missing) then
-					GLOBAL_MOCKS[global_name] = _g_func
-					_g[t] = function(...)
-						return self:__call(...)
-					end
-				else
-					error(string.format("_G[%s] is not a function, but %s", global_name, type(_g_func)))
-				end
-			end
-		end
-	else
-		if _G[global_name] == nil then
-			_is_missing = true
-			if not create_missing then
-				error("Global object is not found (or try with create_missing=true): " .. global_name)
-			end
-		end
-
-		_g_func = _G[global_name]
-		if type(_g_func) == "function" or (create_missing and _is_missing) then
-			GLOBAL_MOCKS[global_name] = _g_func
-			_G[global_name] = function(...)
-				return self:__call(...)
-			end
-		else
-			error(string.format("_G[%s] is not a function, but %s", global_name, type(_G[global_name])))
-		end
+	if orig_func then
+		GLOBAL_MOCKS[global_name] = orig_func
 	end
 
 	return self
@@ -124,7 +139,7 @@ function Mock:__call(...)
 end
 
 ---Releases all aquired mocks
-function Mock.finalize()
+function Mock.global_finalize()
 	for k, v in pairs(GLOBAL_MOCKS) do
 		if string.find(k, "%.") then
 			-- name with dots!
