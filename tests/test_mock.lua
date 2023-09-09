@@ -18,6 +18,11 @@ local Mock = require("Mock")
 TestMock = {}
 function TestMock:setUp() end
 
+function TestMock:tearDown()
+	Mock.finalize()
+	lu.assertEquals(Mock.global_count(), 0)
+end
+
 function TestMock:test_mock_global__init()
 	local m = Mock.g("getInfoParam")
 	lu.assertEquals(m.return_value, nil)
@@ -101,12 +106,7 @@ function TestMock:test_mock_global_with_dots()
 	lu.assertNotEquals(os.clock(), 77.01)
 end
 
-function TestMock:tearDown()
-	Mock.finalize()
-	lu.assertEquals(Mock.global_count(), 0)
-end
-
-function TestMock:test_mocl_call_args()
+function TestMock:test_mock_call_args()
 	local m = Mock.g("getInfoParam", true)
 	m.return_value = 124
 	mock_test_module.param("param1")
