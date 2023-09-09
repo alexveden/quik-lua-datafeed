@@ -48,6 +48,21 @@ function TestQuikMock:test_mock_global__init_create_non_existing()
 	lu.assertEquals(m.call_count, 1)
 end
 
+function TestQuikMock:test_mock_global__reset_mock()
+	local m = Mock.g("getInfoParamNoExists", true)
+	lu.assertEquals(m.return_value, nil)
+	lu.assertEquals(m.call_count, 0)
+	lu.assertEquals(m.name, "getInfoParamNoExists")
+
+	--- This one now created by Mock!
+	---@diagnostic disable-next-line
+	getInfoParamNoExists()
+	lu.assertEquals(m.call_count, 1)
+	m:reset_mock()
+
+	lu.assertEquals(m.call_count, 0)
+end
+
 function TestQuikMock:test_mock_call_from_another_module()
 	local m = Mock.g("getInfoParam", true)
 	m.return_value = 124
@@ -91,6 +106,23 @@ function TestQuikMock:tearDown()
 	lu.assertEquals(Mock.global_count(), 0)
 end
 
+
+function TestQuikMock:test_mocl_call_args()
+	local m = Mock.g("getInfoParam", true)
+	m.return_value = 124
+	mock_test_module.param("param1")
+	mock_test_module.param("param2")
+
+	lu.assertEquals(m.call_count, 2)
+	lu.assertEquals(#m.call_args, 2)
+	lu.assertEquals(m.call_args[1], {'param1'})
+	lu.assertEquals(m.call_args[2], {'param2'})
+	lu.assertEquals(m.call_args[1][1], 'param1')
+
+	m:reset_mock()
+	lu.assertEquals(#m.call_args, 0)
+	lu.assertEquals(m.call_args, {})
+end
 -- end of table TestLogger
 
 os.exit(lu.LuaUnit.run())

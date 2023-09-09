@@ -8,11 +8,13 @@
 ---@field return_value any return value of the mock function
 ---@field side_effect nil| function | table custom function when mock called
 ---@field call_count number number of times mock was called
+---@field call_args table sequence of all calls
 Mock = {
 	name = "",
 	return_value = nil,
 	side_effect = nil,
 	call_count = 0,
+	call_args = {}
 }
 Mock.__index = Mock
 
@@ -35,6 +37,7 @@ function Mock.g(global_name, create_missing)
 	---@class Mock
 	local self = setmetatable({}, Mock)
 	self.name = global_name
+	self.call_args = {}
 
 	if GLOBAL_FORBIDDEN[global_name] then
 		error("Forbidden mocking for global `" .. global_name .. "`")
@@ -95,8 +98,17 @@ function Mock.g(global_name, create_missing)
 	return self
 end
 
+---Reset mock call statistics
+function Mock:reset_mock()
+	self.call_count = 0
+	self.call_args = {}
+end
+
 function Mock:__call(...)
 	self.call_count = self.call_count + 1
+
+	table.insert(self.call_args, {...})
+
 	if self.side_effect then
 		if type(self.side_effect) == "function" then
 			return self.side_effect(...)
