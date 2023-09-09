@@ -181,6 +181,30 @@ function TestMock:test_mock_side_effect_function()
 	lu.assertEquals(m.call_count, 1)
 end
 
+function TestMock:test_mock_side_effect_array()
+	local m = Mock.global("getInfoParam", true)
+
+	-- IMPORTANT: return_value overriden by side_effect
+	m.side_effect = { 11, 22, 33 }
+	lu.assertEquals(mock_test_module.param("test"), 11)
+	lu.assertEquals(mock_test_module.param("test"), 22)
+	lu.assertEquals(mock_test_module.param("test"), 33)
+	lu.assertErrorMsgContains(
+		"side_effect table is empty, or call count overflow happened",
+		mock_test_module.param,
+		"test"
+	)
+	lu.assertEquals(m.call_count, 4)
+
+	---@diagnostic disable-next-line
+	m.side_effect = 12
+	lu.assertErrorMsgContains(
+		"side_effect expected function or table,",
+		mock_test_module.param,
+		"test"
+	)
+end
+
 function TestMock:test_mock_call_args()
 	local m = Mock.global("getInfoParam", true)
 	m.return_value = 124

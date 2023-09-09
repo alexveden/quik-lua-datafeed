@@ -1,7 +1,7 @@
 --
 -- Simple LUA mocks with pythonic flavor
 --
---   Aleksandr Vedeneev (c) 2023 
+--   Aleksandr Vedeneev (c) 2023
 --
 --   MIT License
 --
@@ -13,7 +13,7 @@
 ---@field call_count number number of times mock was called
 ---@field call_args table sequence of all mock calls
 Mock = {
-	name = "",
+	func_path = "",
 	return_value = nil,
 	side_effect = nil,
 	call_count = 0,
@@ -22,7 +22,7 @@ Mock = {
 Mock.__index = Mock
 
 -- In case if print is mocked, too
-local __print = print
+-- local __print = print
 local GLOBAL_MOCKS = {}
 local GLOBAL_MOCKS_FORBIDDEN = {
 	["error"] = true,
@@ -50,7 +50,7 @@ end
 ---@param fpath string func name or path ("os.clock", "class.sub.func")
 ---@param create_missing boolean creates if not exist
 ---@param table_name any tbl meaningful name
----@param patch_func function patch function 
+---@param patch_func function patch function
 ---@return function|nil
 local function patch_table(tbl, fpath, create_missing, table_name, patch_func)
 	if not fpath or #fpath == 0 then
@@ -131,6 +131,8 @@ end
 ---@param create_missing? boolean force mock creation even if it's not found in _G (default: false)
 ---@return Mock
 function Mock.global(global_name, create_missing)
+	create_missing = create_missing or false
+
 	---@class Mock
 	local self = setmetatable({}, Mock)
 	self.func_path = global_name
@@ -163,6 +165,7 @@ end
 ---@return Mock
 function Mock.object(object, func_path, create_missing)
 	assert(type(object) == "table")
+	create_missing = create_missing or false
 
 	if MOCKED_OBJECTS[object] and MOCKED_OBJECTS[object][func_path] then
 		error(string.format("object(%s)[%s] already mocked my another mock.", tostring(object), func_path))
@@ -213,23 +216,30 @@ end
 ---Magic method for mocked function calls
 function Mock:__call(...)
 	self.call_count = self.call_count + 1
-
 	table.insert(self.call_args, { ... })
 
 	if self.side_effect then
 		if type(self.side_effect) == "function" then
 			return self.side_effect(...)
 		else
-			-- TODO: implement array based side effects
-			assert(false, "TODO: implement array based side effect too")
+			if type(self.side_effect) == "table" then
+				if self.call_count > #self.side_effect then
+					error("side_effect table is empty, or call count overflow happened")
+				end
+
+				return self.side_effect[self.call_count]
+			else
+				error("side_effect expected function or table, use `Mock.return_value` for static results")
+			end
 		end
 	else
 		return self.return_value
 	end
+
 	-- __print("Mock.__call[" .. self.name .. "] ", ...)
 end
 
----Releases all aquired mocks
+---Releases all aquired mocks for this module (useful in Test:tearDown())
 function Mock.release_all()
 	for k, _ in pairs(GLOBAL_MOCKS) do
 		release_mock(GLOBAL_MOCKS, _G, k)
