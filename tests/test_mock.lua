@@ -15,10 +15,10 @@ local Mock = require("Mock")
 --
 --]]
 --
-TestQuikMock = {}
-function TestQuikMock:setUp() end
+TestMock = {}
+function TestMock:setUp() end
 
-function TestQuikMock:test_mock_global__init()
+function TestMock:test_mock_global__init()
 	local m = Mock.g("getInfoParam")
 	lu.assertEquals(m.return_value, nil)
 	lu.assertEquals(m.call_count, 0)
@@ -29,14 +29,15 @@ function TestQuikMock:test_mock_global__init()
 	lu.assertEquals(Mock.global_count(), 1)
 end
 
-function TestQuikMock:test_mock_global__forbidden()
+function TestMock:test_mock_global__forbidden()
 	lu.assertErrorMsgContains("Forbidden mocking for global ", Mock.g, "error")
 	lu.assertErrorMsgContains("Forbidden mocking for global ", Mock.g, "setmetatable")
 	lu.assertErrorMsgContains("Forbidden mocking for global ", Mock.g, "type")
 	lu.assertErrorMsgContains("Forbidden mocking for global ", Mock.g, "pairs")
 	lu.assertErrorMsgContains("Forbidden mocking for global ", Mock.g, "assert")
 end
-function TestQuikMock:test_mock_global__init_create_non_existing()
+
+function TestMock:test_mock_global__init_create_non_existing()
 	local m = Mock.g("getInfoParamNoExists", true)
 	lu.assertEquals(m.return_value, nil)
 	lu.assertEquals(m.call_count, 0)
@@ -48,7 +49,7 @@ function TestQuikMock:test_mock_global__init_create_non_existing()
 	lu.assertEquals(m.call_count, 1)
 end
 
-function TestQuikMock:test_mock_global__reset_mock()
+function TestMock:test_mock_global__reset_mock()
 	local m = Mock.g("getInfoParamNoExists", true)
 	lu.assertEquals(m.return_value, nil)
 	lu.assertEquals(m.call_count, 0)
@@ -63,7 +64,7 @@ function TestQuikMock:test_mock_global__reset_mock()
 	lu.assertEquals(m.call_count, 0)
 end
 
-function TestQuikMock:test_mock_call_from_another_module()
+function TestMock:test_mock_call_from_another_module()
 	local m = Mock.g("getInfoParam", true)
 	m.return_value = 124
 	local module_param = mock_test_module.param("mock test module")
@@ -71,7 +72,7 @@ function TestQuikMock:test_mock_call_from_another_module()
 	lu.assertEquals(m.call_count, 1)
 end
 
-function TestQuikMock:test_mock_side_effect_function()
+function TestMock:test_mock_side_effect_function()
 	local m = Mock.g("getInfoParam", true)
 
 	-- IMPORTANT: return_value overriden by side_effect
@@ -85,29 +86,27 @@ function TestQuikMock:test_mock_side_effect_function()
 	lu.assertEquals(m.call_count, 1)
 end
 
-function TestQuikMock:test_mock_global_with_dots()
+function TestMock:test_mock_global_with_dots()
 	-- WARNING: setting internal functions is possible but may lead to weird side effects!
 	local m = Mock.g("os.clock")
 	m.return_value = 77.01
 	lu.assertEquals(m.return_value, 77.01)
 	lu.assertEquals(m.call_count, 0)
-	lu.assertEquals(m.name, 'os.clock')
+	lu.assertEquals(m.name, "os.clock")
 
 	lu.assertEquals(os.clock(), 77.01)
 	lu.assertEquals(m.call_count, 1)
 
 	Mock.finalize()
 	lu.assertNotEquals(os.clock(), 77.01)
-
 end
 
-function TestQuikMock:tearDown()
+function TestMock:tearDown()
 	Mock.finalize()
 	lu.assertEquals(Mock.global_count(), 0)
 end
 
-
-function TestQuikMock:test_mocl_call_args()
+function TestMock:test_mocl_call_args()
 	local m = Mock.g("getInfoParam", true)
 	m.return_value = 124
 	mock_test_module.param("param1")
@@ -115,14 +114,13 @@ function TestQuikMock:test_mocl_call_args()
 
 	lu.assertEquals(m.call_count, 2)
 	lu.assertEquals(#m.call_args, 2)
-	lu.assertEquals(m.call_args[1], {'param1'})
-	lu.assertEquals(m.call_args[2], {'param2'})
-	lu.assertEquals(m.call_args[1][1], 'param1')
+	lu.assertEquals(m.call_args[1], { "param1" })
+	lu.assertEquals(m.call_args[2], { "param2" })
+	lu.assertEquals(m.call_args[1][1], "param1")
 
 	m:reset_mock()
 	lu.assertEquals(#m.call_args, 0)
 	lu.assertEquals(m.call_args, {})
 end
--- end of table TestLogger
 
 os.exit(lu.LuaUnit.run())

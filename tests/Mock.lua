@@ -8,20 +8,20 @@
 ---@field return_value any return value of the mock function
 ---@field side_effect nil| function | table custom function when mock called
 ---@field call_count number number of times mock was called
----@field call_args table sequence of all calls
+---@field call_args table sequence of all mock calls
 Mock = {
 	name = "",
 	return_value = nil,
 	side_effect = nil,
 	call_count = 0,
-	call_args = {}
+	call_args = {},
 }
 Mock.__index = Mock
 
 -- In case if print is mocked, too
 local __print = print
 local GLOBAL_MOCKS = {}
-local GLOBAL_FORBIDDEN = {
+local GLOBAL_MOCKS_FORBIDDEN = {
 	["error"] = true,
 	["setmetatable"] = true,
 	["type"] = true,
@@ -39,7 +39,7 @@ function Mock.g(global_name, create_missing)
 	self.name = global_name
 	self.call_args = {}
 
-	if GLOBAL_FORBIDDEN[global_name] then
+	if GLOBAL_MOCKS_FORBIDDEN[global_name] then
 		error("Forbidden mocking for global `" .. global_name .. "`")
 	end
 	if GLOBAL_MOCKS[global_name] ~= nil then
@@ -104,10 +104,11 @@ function Mock:reset_mock()
 	self.call_args = {}
 end
 
+---Magic method for mocked function calls
 function Mock:__call(...)
 	self.call_count = self.call_count + 1
 
-	table.insert(self.call_args, {...})
+	table.insert(self.call_args, { ... })
 
 	if self.side_effect then
 		if type(self.side_effect) == "function" then
@@ -132,17 +133,19 @@ function Mock.finalize()
 				if type(_g[t]) == "table" then
 					_g = _g[t]
 				else
-		            _g[t] = v
+					_g[t] = v
 				end
 			end
 		else
-		    _G[k] = v
+			_G[k] = v
 		end
 
 		GLOBAL_MOCKS[k] = nil
 	end
 end
 
+---Total count of currently mocked global functions
+---@return number
 function Mock.global_count()
 	local cnt = 0
 	for _, _ in pairs(GLOBAL_MOCKS) do
