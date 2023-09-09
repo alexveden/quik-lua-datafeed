@@ -31,6 +31,8 @@ function TestMock:test_mock_global__init()
 
 	lu.assertErrorMsgContains("function is not found (or try with create_missing=true).", Mock.g, "some-not_existing_global_func")
 	lu.assertErrorMsgContains("Global object was already mocked:", Mock.g, "getInfoParam")
+	lu.assertErrorMsgContains("Empty global_name", Mock.g, "")
+	lu.assertErrorMsgContains("Empty global_name", Mock.g, nil)
 	lu.assertEquals(Mock.global_count(), 1)
 end
 

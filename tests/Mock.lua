@@ -34,52 +34,36 @@ local function patch_table(tbl, fpath, create_missing, table_name, patch_func)
 	local _tbl = tbl
 	local _t_orig_func = nil
 
-	if string.find(fpath, "%.") then
-		-- name with dots!
-		for t in string.gmatch(fpath, "([^.]+)") do
-			if _tbl[t] == nil then
-				_is_missing = true
-
-				if not create_missing then
-					error(
-						string.format(
-							"%s[%s]function is not found (or try with create_missing=true).",
-							table_name,
-							fpath
-						)
-					)
-				end
-			end
-
-			if type(_tbl[t]) == "table" then
-				_tbl = _tbl[t]
-			else
-				_t_orig_func = _tbl[t]
-
-				if type(_t_orig_func) == "function" or (create_missing and _is_missing) then
-					_tbl[t] = patch_func
-				else
-					error(string.format("%s[%s] is not a function, but %s", table_name, fpath, type(_t_orig_func)))
-				end
-			end
-		end
-	else
-		_t_orig_func = _tbl[fpath]
-		if _t_orig_func == nil then
+	-- name with dots!
+	for t in string.gmatch(fpath, "([^.]+)") do
+		if _tbl[t] == nil then
 			_is_missing = true
+
 			if not create_missing then
 				error(
-					string.format("%s[%s] function is not found (or try with create_missing=true).", table_name, fpath)
+					string.format(
+						"%s[%s]function is not found (or try with create_missing=true).",
+						table_name,
+						fpath
+					)
 				)
 			end
 		end
 
-		if type(_t_orig_func) == "function" or (create_missing and _is_missing) then
-			_tbl[fpath] = patch_func
+		if type(_tbl[t]) == "table" then
+			_tbl = _tbl[t]
 		else
-			error(string.format("%s[%s] is not a function, but %s", table_name, fpath, type(_t_orig_func)))
+			_t_orig_func = _tbl[t]
+
+			if type(_t_orig_func) == "function" or (create_missing and _is_missing) then
+				_tbl[t] = patch_func
+			else
+				error(string.format("%s[%s] is not a function, but %s", table_name, fpath, type(_t_orig_func)))
+			end
 		end
 	end
+
+	assert(_t_orig_func or create_missing, 'Expected to be patched or created, but not...')
 	return _t_orig_func
 end
 
@@ -92,6 +76,10 @@ function Mock.g(global_name, create_missing)
 	local self = setmetatable({}, Mock)
 	self.name = global_name
 	self.call_args = {}
+
+	if not global_name or #global_name == 0 then
+		error("Empty global_name")
+	end
 
 	if GLOBAL_MOCKS_FORBIDDEN[global_name] then
 		error("Forbidden mocking for global `" .. global_name .. "`")
