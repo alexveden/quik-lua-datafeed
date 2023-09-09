@@ -33,7 +33,7 @@ local GLOBAL_MOCKS_FORBIDDEN = {
 }
 local MOCKED_OBJECTS = {}
 
----Counts lenght of a table
+---Counts length of a key-value table
 ---@param tbl table
 ---@return number
 local function tlen(tbl)
