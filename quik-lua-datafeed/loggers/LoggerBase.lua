@@ -22,7 +22,7 @@ function LoggerBase:init()
 	error("You must implement init() function in custom logger class")
 end
 
---@de
+---@diagnostic disable-next-line
 function LoggerBase:log(msg_templ, ...)
 	error("You must implement log(msg_templ, ...) function in custom logger class")
 end
