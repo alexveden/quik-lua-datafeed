@@ -44,7 +44,7 @@ end
 --]
 ---@diagnostic disable-next-line
 function main()
-
+    print('hello')
 	---@type QuikLuaDataFeed
 	local feed = QuikLuaDatafeed.new(config)
 
@@ -69,7 +69,8 @@ function main()
 	end
 
 	feed:log("main: stopping")
-	feed:log("feed stats: %s", feed:get_stats(true))
-	feed:log("stopped")
-	error(feed:get_stats(true))
+	local stats = feed:get_stats(true)
+	feed:log("feed stats: %s", stats)
+	feed:stop()
+	error(stats)
 end

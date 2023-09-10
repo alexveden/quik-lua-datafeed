@@ -7,10 +7,10 @@ local json = require("core.json")
 ---@field subscriptions table per-event type statistics
 
 ---@class QuikLuaDataFeed
----@field config table QuikLuaDataFeed configuration table
+---@field debug_level number level of logging verbosity
 ---@field stats FeedStats aggregated datafeed stats
 QuikLuaDataFeed = {
-	config = {},
+    debug_level = 0,
 	stats = {
 		n_events = 0,
 		max_que_length = 0,
@@ -24,20 +24,17 @@ QuikLuaDataFeed.__index = QuikLuaDataFeed
 ---@param config table - configuration table
 ---@return QuikLuaDataFeed
 function QuikLuaDataFeed.new(config)
-	assert(config, "no config")
-
 	---@class QuikLuaDataFeed
 	local self = setmetatable({}, QuikLuaDataFeed)
-
-	self.config = config
-	self:initialize()
+	self:initialize(config)
 	return self
-	-- return setmetatable(self, QuikLuaDataFeed)
 end
 
 ---Initializes QuikLuaDataFeed instance and handlers
+---@param config table initial QuikLuaDataFeed configuration table
 ---@return nil
-function QuikLuaDataFeed:initialize()
+function QuikLuaDataFeed:initialize(config)
+	assert(config, "no config")
 	self:log("QuikLuaDataFeed: Initialized log")
 	-- Read config
 	-- Validate config
@@ -48,9 +45,9 @@ end
 
 ---Log debug information using pre-configured logger
 ---@param msg_templ string log message optionally with string.format() magics
----@vararg string | number | boolean | nil
+---@vararg table | string | number | boolean | nil
 function QuikLuaDataFeed:log(msg_templ, ...)
-	-- PrintDbgStr(string.format(msg_templ, ...))
+	PrintDbgStr(string.format(msg_templ, ...))
 end
 
 ---Notification by Quik about length of current queue (just for stats)
@@ -134,6 +131,12 @@ function QuikLuaDataFeed:get_stats(as_json)
 	else
 		return result
 	end
+end
+
+
+---Closes QuikLuaDataFeed and frees its resources
+function QuikLuaDataFeed:stop()
+	self:log("stopped")
 end
 
 -- Returns class

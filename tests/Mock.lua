@@ -164,7 +164,7 @@ end
 ---@param create_missing? boolean force mock creation even if it's not found in _G (default: false)
 ---@return Mock
 function Mock.object(object, func_path, create_missing)
-	assert(type(object) == "table")
+	assert(type(object) == "table", 'object expected to be a table, got '.. type(object))
 	create_missing = create_missing or false
 
 	if MOCKED_OBJECTS[object] and MOCKED_OBJECTS[object][func_path] then
