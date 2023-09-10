@@ -192,6 +192,16 @@ function Mock.object(object, func_path, create_missing)
 	return self
 end
 
+---Creates a simple mock for a function
+---@return Mock
+function Mock.func()
+	---@class Mock
+	local self = setmetatable({}, Mock)
+	self.func_path = nil
+	self.call_args = {}
+	return self
+end
+
 ---Releases mock (unpatch global or object mock)
 function Mock:release()
 	if self._object then
