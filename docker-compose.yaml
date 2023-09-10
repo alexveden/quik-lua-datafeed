@@ -1,0 +1,8 @@
+version: "3"
+services:
+  quik-lua-datafeed:
+    build: .
+    image: quik-lua-datafeed:latest
+    container_name: quik-lua-datafeed
+    volumes:
+      - "./built:/mnt/built:rw"
