@@ -1,4 +1,5 @@
 local json = require("core.json")
+local LoggerBase = require("loggers.LoggerBase")
 
 ---@class FeedStats
 ---@field n_events number count of events processed by datafeed
@@ -7,10 +8,11 @@ local json = require("core.json")
 ---@field subscriptions table per-event type statistics
 
 ---@class QuikLuaDataFeed
----@field debug_level number level of logging verbosity
+---@field verbosity_level number level of logging verbosity
 ---@field stats FeedStats aggregated datafeed stats
+---@field logger LoggerBase logging engine instance
 QuikLuaDataFeed = {
-    debug_level = 0,
+	verbosity_level = 5,
 	stats = {
 		n_events = 0,
 		max_que_length = 0,
@@ -35,19 +37,34 @@ end
 ---@return nil
 function QuikLuaDataFeed:initialize(config)
 	assert(config, "no config")
-	self:log("QuikLuaDataFeed: Initialized log")
-	-- Read config
-	-- Validate config
-	-- Setup handlers
-	-- Setup loggers
-	-- Setup serializers
+	self.logger = config.logger or error('logger is not set in config.logger')
+
+	local isok, err = pcall(LoggerBase.validate_custom_logger, self.logger)
+	if not isok then
+		error("Logger validation error: " .. err)
+	end
+
+	isok, err = pcall(self.logger.init, self.logger)
+	if not isok then
+		error("Logger initialization error: " .. err)
+	end
+
+	self:log(2, "QuikLuaDataFeed: initialized logger engine")
+	self:log(2, "QuikLuaDataFeed: initializing handlers")
+	self:log(2, "QuikLuaDataFeed: initializing serializers")
 end
 
+--
 ---Log debug information using pre-configured logger
+---@param level number verbosity_level of the log message
 ---@param msg_templ string log message optionally with string.format() magics
 ---@vararg table | string | number | boolean | nil
-function QuikLuaDataFeed:log(msg_templ, ...)
-	PrintDbgStr(string.format(msg_templ, ...))
+function QuikLuaDataFeed:log(level, msg_templ, ...)
+	assert(level, 'level is nil')
+	assert(self.verbosity_level, 'self.verbosity_level is nil')
+	if level <= self.verbosity_level then
+		self.logger:log(msg_templ, ...)
+	end
 end
 
 ---Notification by Quik about length of current queue (just for stats)
@@ -73,6 +90,7 @@ function QuikLuaDataFeed:quik_get_subscribed_events()
 	for k, _ in pairs(e_subs) do
 		assert(not self.stats.subscriptions[k], "subscribed_events already called")
 		self.stats.subscriptions[k] = { n = 0, time_sum = 0.0 }
+		self:log(2, "Subscribed events: %s", k)
 	end
 
 	return e_subs
@@ -85,7 +103,7 @@ function QuikLuaDataFeed:quik_on_event(event)
 
 	assert(event, "nil event given")
 	assert(event.callback, "expected to have callback name")
-	self:log("Event %s", event.callback)
+	self:log(3, "Event %s", event.callback)
 
 	-- Recording event performance stats
 	self.stats.n_events = self.stats.n_events + 1
@@ -133,10 +151,11 @@ function QuikLuaDataFeed:get_stats(as_json)
 	end
 end
 
-
 ---Closes QuikLuaDataFeed and frees its resources
 function QuikLuaDataFeed:stop()
-	self:log("stopped")
+	self:log(3, "Stopping: handlers")
+	self:log(3, "Stopping: seriealizers")
+	self:log(3, "Stopping: loggers")
 end
 
 -- Returns class
