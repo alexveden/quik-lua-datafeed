@@ -10,6 +10,8 @@ function LoggerPrintDbgStr.new(config)
 
     -- setting derived values
 	self.name = "LoggerPrintDbgStr"
+
+	LoggerBase.validate_custom_logger(self)
 	return self
 end
 

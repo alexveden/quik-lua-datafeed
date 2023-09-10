@@ -27,6 +27,8 @@ function LoggerSocket.new(config)
 	self.host = config.host
 	self.port = config.port
 
+	LoggerBase.validate_custom_logger(self)
+
 	return self
 end
 
