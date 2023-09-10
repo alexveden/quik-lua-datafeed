@@ -1,7 +1,10 @@
+package.cpath = '.\\lib\\?.dll;' .. package.cpath
+package.path = '.\\lib\\lua\\?.lua;' .. package.path
+
 local QuikLuaDatafeed = require("core.QuikLuaDatafeed")
-local config_exists, config = pcall(require, "config")
-if not config_exists then
-	error(string.format("Missing config.lua, in '%s' folder.", getScriptPath()))
+local config_isok, config = pcall(require, "config")
+if not config_isok then
+	error(string.format("Missing config.lua, or error in config. \r\nError: %s", config))
 end
 
 
@@ -48,12 +51,7 @@ function main()
 	---@type QuikLuaDataFeed
 	local feed = QuikLuaDatafeed.new(config)
 
-	feed:log("Initializing QuikLuaDatafeed")
-
 	SUBSCRIBED_EVENTS = feed:quik_get_subscribed_events()
-	for k, _ in pairs(SUBSCRIBED_EVENTS) do
-		feed:log("Subscribed: %s", k)
-	end
 
 	while IS_RUNNING do
 		-- collectgarbage("collect")
@@ -68,9 +66,9 @@ function main()
 		end
 	end
 
-	feed:log("main: stopping")
+	feed:log(2, "main: stopping")
 	local stats = feed:get_stats(true)
-	feed:log("feed stats: %s", stats)
+	feed:log(2, "feed stats: %s", stats)
 	feed:stop()
 	error(stats)
 end
