@@ -299,6 +299,7 @@ function TestTransportBase:test_transport_log()
 	lu.assertEquals(mock_log.call_count, 1)
 	lu.assertEquals(mock_log.call_args[1], {"TransportLog:send() -> %s: %s", "test#my#log", '{"data":1}'})
 
+
 end
 
 os.exit(lu.LuaUnit.run())

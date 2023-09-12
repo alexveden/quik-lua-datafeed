@@ -4,19 +4,26 @@ local ev = require('core.events')
 ---@field name string simple handler name
 ---@field transport TransportBase transport engine assigned to handler
 ---@field events {string: boolean} table of handler events
+---@field log_func function logger log function (typically QuiLuaDatafeed.log)
 HandlerBase = {}
 HandlerBase.__index = HandlerBase
 
+---@class HandlerConfig
+---@field transport TransportBase instance of transport
+---@field log_func function logger log(level, msg_templ, ...) (typically QuiLuaDatafeed.log)
+
 ---Creates new instance of HandlerBase class
----@param config table - configuration table
+---@param config HandlerConfig - configuration table
 ---@return HandlerBase
 function HandlerBase.new(config)
 	---@class HandlerBase
 	assert(type(config) == "table", "HandlerBase: config must be a table or empty table `{}`")
+	assert(type(config.log_func) == 'function', "config.log_func not set or incorrect type")
 	local self = setmetatable({}, HandlerBase)
 	self.name = "HandlerBase"
 	self.transport = config.transport
 	self.events = {}
+	self.log_func = config.log_func
 
 	return self
 end
@@ -27,6 +34,11 @@ end
 
 function HandlerBase:stop()
 	error("You must implement stop() function in custom handler class")
+end
+
+function HandlerBase:log(level, msg_templ, ...)
+	assert(self.log_func, 'self.log_func is not set in constructor or config')
+	self.log_func(level, msg_templ, ...)
 end
 
 ---Main event processing function
@@ -41,6 +53,8 @@ function HandlerBase.validate_custom_handler(custom_handler)
 	assert(type(custom_handler) == "table", ": custom_handler expected to be a table")
 	assert(custom_handler["name"], "custom_handler must have a name")
 	assert(custom_handler["transport"], "custom_handler must have transport")
+	assert(custom_handler['log_func'], 'custom_handler must have log_func' )
+	assert(type(custom_handler['log_func']) == 'function', 'custom_handler.log_func is not a function' )
 
 	for _, m in pairs({ "init", "stop", "on_event" }) do
 		assert(custom_handler[m], custom_handler["name"] .. ": custom_handler expected to have " .. m .. "()")

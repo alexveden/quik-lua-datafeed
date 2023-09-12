@@ -40,7 +40,8 @@ end
 
 function TestHandlerBase:test_handler_new()
 	local t = mock_transport()
-	local h = HandlerBase.new({ transport = t })
+	local l = Mock.func()
+	local h = HandlerBase.new({ transport = t, log_func = l.__call })
 	lu.assertEquals(type(h), "table")
 	lu.assertEquals(h.name, "HandlerBase")
 	lu.assertEquals(h.transport, t)
@@ -50,11 +51,33 @@ function TestHandlerBase:test_handler_new()
 	lu.assertErrorMsgContains("You must implement on_event() function in custom handler class", h.on_event, h)
 end
 
+function TestHandlerBase:test_handler_log()
+	local t = mock_transport()
+	local l = Mock.func()
+	local h = HandlerBase.new({
+		transport = t,
+		log_func = function(level, msg_templ, ...)
+			l(l, level, msg_templ, ...)
+		end,
+	})
+
+	h:log(2, "Hello", 1)
+
+	lu.assertEquals(l.call_count, 1)
+	lu.assertEquals(l.call_args[1][1], l)
+	lu.assertEquals(l.call_args[1][2], 2)
+	lu.assertEquals(l.call_args[1][3], "Hello")
+	lu.assertEquals(l.call_args[1][4], 1)
+
+end
+
 function TestHandlerBase:test_handler_validation()
 	local t = mock_transport()
+	local l = Mock.func()
 	local h = {
 		name = "CustomHandler",
 		transport = t,
+		log_func = l.__call,
 		events = {
 			[ev.ON_IDLE] = { last_idle_time = 0 },
 			[ev.ON_QUOTE] = true,
@@ -69,23 +92,31 @@ function TestHandlerBase:test_handler_validation()
 	HandlerBase.validate_custom_handler(h)
 
 	h.events = nil
-	lu.assertErrorMsgContains('custom_handler.events is nil', HandlerBase.validate_custom_handler, h)
+	lu.assertErrorMsgContains("custom_handler.events is nil", HandlerBase.validate_custom_handler, h)
 	h.events = {}
-	lu.assertErrorMsgContains('no events or custom_handler events must be a dictionary of ', HandlerBase.validate_custom_handler, h)
-	h.events = {['ZUNKNOWN'] = true}
-	lu.assertErrorMsgContains('Event key ZUNKNOWN not found in core.events', HandlerBase.validate_custom_handler, h)
-	h.events = {[ev.ON_IDLE] = false}
-	lu.assertErrorMsgContains('Event value must pass `if event then`,', HandlerBase.validate_custom_handler, h)
-	h.events = {ev.ON_IDLE}
-	lu.assertErrorMsgContains('Event key must be core.events[ON_] -> string, got 1 type: number', HandlerBase.validate_custom_handler, h)
+	lu.assertErrorMsgContains(
+		"no events or custom_handler events must be a dictionary of ",
+		HandlerBase.validate_custom_handler,
+		h
+	)
+	h.events = { ["ZUNKNOWN"] = true }
+	lu.assertErrorMsgContains("Event key ZUNKNOWN not found in core.events", HandlerBase.validate_custom_handler, h)
+	h.events = { [ev.ON_IDLE] = false }
+	lu.assertErrorMsgContains("Event value must pass `if event then`,", HandlerBase.validate_custom_handler, h)
+	h.events = { ev.ON_IDLE }
+	lu.assertErrorMsgContains(
+		"Event key must be core.events[ON_] -> string, got 1 type: number",
+		HandlerBase.validate_custom_handler,
+		h
+	)
 
-	h.events = {[ev.ON_IDLE] = true}
+	h.events = { [ev.ON_IDLE] = true }
 	h.transport = nil
-	lu.assertErrorMsgContains('custom_handler must have transport', HandlerBase.validate_custom_handler, h)
+	lu.assertErrorMsgContains("custom_handler must have transport", HandlerBase.validate_custom_handler, h)
 
 	h.transport = t
 	h.name = nil
-	lu.assertErrorMsgContains('custom_handler must have a name', HandlerBase.validate_custom_handler, h)
+	lu.assertErrorMsgContains("custom_handler must have a name", HandlerBase.validate_custom_handler, h)
 end
 
 os.exit(lu.LuaUnit.run())
