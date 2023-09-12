@@ -1,4 +1,4 @@
-local json = require("core.json")
+local cjson = require("cjson")
 local LoggerBase = require("loggers.LoggerBase")
 
 ---@class FeedStats
@@ -145,7 +145,7 @@ function QuikLuaDataFeed:get_stats(as_json)
 	end
 
 	if as_json then
-		return json.encode(result)
+		return cjson.encode(result)
 	else
 		return result
 	end
