@@ -56,10 +56,10 @@ function TestHandlerBase:test_handler_log()
 	local l = Mock.func()
 	local h = HandlerBase.new({
 		transport = t,
-		log_func = function(level, msg_templ, ...)
-			l(l, level, msg_templ, ...)
-		end,
 	})
+	h.log_func = function(level, msg_templ, ...)
+		l(l, level, msg_templ, ...)
+	end
 
 	h:log(2, "Hello", 1)
 
@@ -68,7 +68,6 @@ function TestHandlerBase:test_handler_log()
 	lu.assertEquals(l.call_args[1][2], 2)
 	lu.assertEquals(l.call_args[1][3], "Hello")
 	lu.assertEquals(l.call_args[1][4], 1)
-
 end
 
 function TestHandlerBase:test_handler_validation()

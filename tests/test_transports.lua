@@ -49,7 +49,7 @@ function TestTransportBase:test_validate_custom_transport()
 		name = "custom",
 		init = function() end,
 		send = function() end,
-		is_init = function () end,
+		is_init = function() end,
 		serialize_key = function(_, key)
 			TransportBase.validate_key(key)
 			return "adsa"
@@ -92,12 +92,12 @@ function TestTransportBase:test_validate_custom_transport()
 	lu.assertErrorMsgContains(
 		"custom_transport expected to have is_init()",
 		TransportBase.validate_custom_transport,
-		{ name = "as", init = custom.init, send = custom.send, stop = custom.stop}
+		{ name = "as", init = custom.init, send = custom.send, stop = custom.stop }
 	)
 	lu.assertErrorMsgContains(
 		"custom_transport expected to have serialize_key()",
 		TransportBase.validate_custom_transport,
-		{ name = "as", init = custom.init, send = custom.send, is_init=custom.is_init, stop = custom.stop }
+		{ name = "as", init = custom.init, send = custom.send, is_init = custom.is_init, stop = custom.stop }
 	)
 	lu.assertErrorMsgContains(
 		"custom_transport expected to have serialize_value()",
@@ -142,9 +142,7 @@ function TestTransportBase:test_validate_custom_transport_serialization_validati
 		name = "custom",
 		init = function() end,
 		send = function() end,
-		is_init = function ()
-			
-		end,
+		is_init = function() end,
 		serialize_key = function()
 			return "adsa"
 		end,
@@ -290,16 +288,17 @@ end
 
 function TestTransportBase:test_transport_log()
 	local mock_log = Mock.func()
-	local config = { logger = {log = mock_log}}
+	local config = { logger = { log = mock_log } }
 	local t = TransportLog.new(config)
 	lu.assertEquals(type(t), "table")
 	lu.assertEquals(t.name, "TransportLog")
 
-	t:send({'test', 'my', 'log'}, {data=1})
+	t:send({ "test", "my", "log" }, { data = 1 })
 	lu.assertEquals(mock_log.call_count, 1)
-	lu.assertEquals(mock_log.call_args[1], {"TransportLog:send() -> %s: %s", "test#my#log", '{"data":1}'})
-
-
+	lu.assertEquals(mock_log.call_args[1][1], config.logger)
+	lu.assertEquals(mock_log.call_args[1][2], "TransportLog:send() -> %s: %s")
+	lu.assertEquals(mock_log.call_args[1][3], "test#my#log")
+	lu.assertEquals(mock_log.call_args[1][4], '{"data":1}')
 end
 
 os.exit(lu.LuaUnit.run())

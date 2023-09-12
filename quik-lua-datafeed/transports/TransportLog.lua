@@ -6,7 +6,7 @@ cjson.encode_invalid_numbers(true) -- enable Nan serialization in json
 
 local TransportBase = require("transports.TransportBase")
 
----@class TransportLog: TransportBase 
+---@class TransportLog: TransportBase
 ---@field logger LoggerBase generic function for logger output
 local TransportLog = {}
 TransportLog.__index = TransportLog
@@ -16,8 +16,8 @@ function TransportLog.new(config)
 	local self = setmetatable(super, TransportLog)
 
 	-- setting derived values
-	assert(config.logger, 'You must set config.logger (logger instance)')
-	assert(config.logger.log, 'You must set config.logger.log function missing')
+	assert(config.logger, "You must set config.logger (logger instance)")
+	assert(config.logger.log, "You must set config.logger.log function missing")
 	self.name = "TransportLog"
 	self.logger = config.logger
 

@@ -1,6 +1,6 @@
-local HandlerBase = require('handlers.HandlerBase')
-local ev = require('core.events')
-local cjson = require('cjson')
+local HandlerBase = require("handlers.HandlerBase")
+local ev = require("core.events")
+local cjson = require("cjson")
 
 ---@class QuikStats: HandlerBase
 local QuikStats = {}
@@ -13,7 +13,7 @@ function QuikStats.new(config)
 	-- setting derived values
 	self.name = "QuikStats"
 	self.events = {
-	    [ev.ON_IDLE] = {last_idle_event = 0}
+		[ev.ON_IDLE] = { last_idle_event = 0 },
 	}
 
 	HandlerBase.validate_custom_handler(self)
@@ -21,19 +21,19 @@ function QuikStats.new(config)
 end
 
 function QuikStats:init()
-	self:log(0, 'QuikStats init')
-    return true
+	self:log(0, "QuikStats init")
+	return true
 end
 
 function QuikStats:stop()
-    return true
+	return true
 end
 
 ---Main event processing
 ---@param event Event
 function QuikStats:on_event(event)
-	local resp = getSecurityInfo('SPBFUT', 'RIU3')
-	self.transport:send({'quik', 'stats', 'RIU3'}, resp)
+	local resp = getSecurityInfo("SPBFUT", "RIU3")
+	self.transport:send({ "quik", "stats", "RIU3" }, resp)
 end
 
 return QuikStats

@@ -1,4 +1,4 @@
-local ev = require('core.events')
+local ev = require("core.events")
 
 ---@class HandlerBase
 ---@field name string simple handler name
@@ -10,7 +10,6 @@ HandlerBase.__index = HandlerBase
 
 ---@class HandlerConfig
 ---@field transport TransportBase instance of transport
----@field log_func function logger log(level, msg_templ, ...) (typically QuiLuaDatafeed.log)
 
 ---Creates new instance of HandlerBase class
 ---@param config HandlerConfig - configuration table
@@ -22,7 +21,7 @@ function HandlerBase.new(config)
 	self.name = "HandlerBase"
 	self.transport = config.transport
 	self.events = {}
-	self.log_func = nil  -- must be set externally by QuiLuaDatafeed
+	self.log_func = nil -- must be set externally by QuiLuaDatafeed
 	self.log = HandlerBase.log
 
 	return self
@@ -37,7 +36,7 @@ function HandlerBase:stop()
 end
 
 function HandlerBase:log(level, msg_templ, ...)
-	assert(self.log_func, 'self.log_func is not set in constructor or config')
+	assert(self.log_func, "self.log_func is not set in constructor or config")
 	self.log_func(level, msg_templ, ...)
 end
 
@@ -74,9 +73,12 @@ function HandlerBase.validate_custom_handler(custom_handler)
 
 		local n_events = 0
 		for k, v in pairs(custom_handler.events) do
-			assert(type(k) == "string", "Event key must be core.events[ON_] -> string, got " .. tostring(k) .. ' type: ' .. type(k))
+			assert(
+				type(k) == "string",
+				"Event key must be core.events[ON_] -> string, got " .. tostring(k) .. " type: " .. type(k)
+			)
 			assert(v, "Event value must pass `if event then`, got " .. tostring(v))
-			assert(all_events[k], 'Event key '..k..' not found in core.events')
+			assert(all_events[k], "Event key " .. k .. " not found in core.events")
 			n_events = n_events + 1
 		end
 
