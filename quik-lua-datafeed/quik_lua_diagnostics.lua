@@ -9,6 +9,7 @@ package.path = '.\\lib\\lua\\?.lua;' .. package.path
 local function check_socket()
     local socket = require('socket')
 end
+
 function main()
     check_socket()
     error(package.cpath)

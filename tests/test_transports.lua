@@ -47,7 +47,7 @@ function TestTransportBase:test_validate_custom_transport()
 		name = "custom",
 		init = function() end,
 		send = function() end,
-		serialize_key = function(self, key)
+		serialize_key = function(_, key)
 			TransportBase.validate_key(key)
 			return "adsa"
 		end,
@@ -207,7 +207,7 @@ function TestTransportBase:test_memcached_new()
 end
 
 function TestTransportBase:test_memcached_new_config()
-	local function fkey(self, key)
+	local function fkey(_, key)
 		TransportBase.validate_key(key)
 		return "abvsa"
 	end
@@ -225,6 +225,55 @@ function TestTransportBase:test_memcached_new_config()
 	lu.assertEquals(l.memcached, nil)
 	lu.assertEquals(l.serialize_key, fkey)
 	lu.assertEquals(l.serialize_value, fvalue)
+end
+
+function TestTransportBase:test_memcached_serialize()
+	local t = TransportMemcached.new({})
+
+	lu.assertEquals('my#key#test', t:serialize_key({'my', 'key', 'test'}))
+	local nan = 0/0
+    local data = {
+			    ["A-Za-z0-9_"] = "юникод?",
+			    ["fo!@)(#*!@#)"] = true,
+			    another_key = {name = "Alex", skill = 45.12, profit = false},
+			    bid = nan,
+			    allocation = -1
+		    }
+    local ser_data = t:serialize_value(data)
+    lu.assertEquals(type(ser_data), 'string')
+    for k, v in pairs(data) do
+        if type(v) == "table" then
+            for k1, v1 in pairs(v) do
+                lu.assertNotIsNil(string.find(ser_data, tostring(k1), 1, true), 'key: '..tostring(k1))
+                lu.assertNotIsNil(string.find(ser_data, tostring(v1), 1, true), 'value: '..tostring(v1))
+            end
+        else
+            lu.assertNotIsNil(string.find(ser_data, tostring(k), 1, true), 'key: '..tostring(k))
+            if v ~= v then
+                v = 'NaN'
+            end
+            lu.assertNotIsNil(string.find(ser_data, tostring(v), 1, true), 'value: '..tostring(v))
+        end
+    end
+
+    -- Not order by keys is changing every call, weird, fvk the lua!
+	-- lu.assertEquals('{"A-Za-z0-9_":"юникод?","bid":NaN,"fo!@)(#*!@#)":true,"another_key":{"profit":NaN,"skill":45.12,"name":"Alex"},"allocation":-1}', t:serialize_value(data))
+
+end
+
+function TestTransportBase:test_memcached_connect_set_get()
+	local t = TransportMemcached.new({})
+	lu.assertIsNil(t.memcached)
+
+	t:init()
+	lu.assertNotIsNil(t.memcached)
+	t:send({'test', 'my', 'key'}, {test = 'data'})
+
+	local memcached_data = t.memcached:get('test#my#key')
+	lu.assertEquals('{"test":"data"}', memcached_data)
+
+	t:stop()
+	lu.assertIsNil(t.memcached)
 end
 
 os.exit(lu.LuaUnit.run())

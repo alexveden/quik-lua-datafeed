@@ -30,18 +30,14 @@ function TransportMemcached.new(config)
 	return self
 end
 
-function TransportMemcached.defer_socket()
-	error('TransportMemcached: memcached socket error or timeout')
-end
-
 function TransportMemcached:init()
-	self.memcached = memcached.connect(self.host, self.port, TransportMemcached.defer_socket)
+	self.memcached = memcached.connect(self.host, self.port)
     return self.memcached or false
 end
 
 function TransportMemcached:stop()
 	if self.memcached then
-		self.memcached.quit()
+		self.memcached:quit()
 		self.memcached = nil
 	end
     return true
