@@ -37,7 +37,7 @@ end
 ---@return nil
 function QuikLuaDataFeed:initialize(config)
 	assert(config, "no config")
-	self.logger = config.logger or error('logger is not set in config.logger')
+	self.logger = config.logger or error("logger is not set in config.logger")
 
 	local isok, err = pcall(LoggerBase.validate_custom_logger, self.logger)
 	if not isok then
@@ -60,8 +60,8 @@ end
 ---@param msg_templ string log message optionally with string.format() magics
 ---@vararg table | string | number | boolean | nil
 function QuikLuaDataFeed:log(level, msg_templ, ...)
-	assert(level, 'level is nil')
-	assert(self.verbosity_level, 'self.verbosity_level is nil')
+	assert(level, "level is nil")
+	assert(self.verbosity_level, "self.verbosity_level is nil")
 	if level <= self.verbosity_level then
 		self.logger:log(msg_templ, ...)
 	end
