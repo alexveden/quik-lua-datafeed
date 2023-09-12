@@ -1,5 +1,12 @@
 local cjson = require("cjson")
 local LoggerBase = require("loggers.LoggerBase")
+local HandlerBase = require("handlers.HandlerBase")
+local TransportBase = require("transports.TransportBase")
+
+---@class QuikLuaConfig
+---@field verbosity_level number
+---@field logger LoggerBase
+---@field handlers HandlerBase[] 
 
 ---@class FeedStats
 ---@field n_events number count of events processed by datafeed
@@ -11,6 +18,7 @@ local LoggerBase = require("loggers.LoggerBase")
 ---@field verbosity_level number level of logging verbosity
 ---@field stats FeedStats aggregated datafeed stats
 ---@field logger LoggerBase logging engine instance
+---@field handlers HandlerBase[] list of active handlers
 QuikLuaDataFeed = {
 	verbosity_level = 5,
 	stats = {
@@ -33,10 +41,11 @@ function QuikLuaDataFeed.new(config)
 end
 
 ---Initializes QuikLuaDataFeed instance and handlers
----@param config table initial QuikLuaDataFeed configuration table
+---@param config QuikLuaConfig initial QuikLuaDataFeed configuration table
 ---@return nil
 function QuikLuaDataFeed:initialize(config)
 	assert(config, "no config")
+	self.verbosity_level = config.verbosity_level or 1
 	self.logger = config.logger or error("logger is not set in config.logger")
 
 	local isok, err = xpcall(LoggerBase.validate_custom_logger, debug.traceback, self.logger)
@@ -48,11 +57,51 @@ function QuikLuaDataFeed:initialize(config)
 	if not isok then
 		error("Logger initialization error: \n" .. err)
 	end
+	self:log(1, '---------------------')
+	self:log(1, 'Starting QuikLuaDataFeed')
 	self:log(2, "QuikLuaDataFeed: initialized logger engine")
 
-	self:log(2, "QuikLuaDataFeed: initializing transports")
-
 	self:log(2, "QuikLuaDataFeed: initializing handlers")
+
+	local function log_func(level, msg_templ, ...)
+		assert(self)
+		self:log(level, msg_templ, ...)
+	end
+
+	for _, handler in pairs(config.handlers) do
+		self:log(3, 'Validating handler: %s', handler.name)
+
+		isok, err = xpcall(HandlerBase.validate_custom_handler, debug.traceback, handler)
+		if not isok then
+			error(err)
+		end
+
+		if not handler.transport:is_init() then
+			self:log(3, 'Validating transport: %s', handler.name)
+			isok, err = xpcall(TransportBase.validate_custom_transport, debug.traceback,handler.transport)
+			if not isok then
+				error(err)
+			end
+
+			self:log(3, 'initializing transport: %s', handler.name)
+			isok, err = xpcall(handler.transport.init, debug.traceback, handler.transport)
+			if not isok then
+				error(err)
+			end
+		end
+
+		handler.log_func = log_func
+
+		isok, err = xpcall(handler.init, debug.traceback, handler)
+		if not isok then
+			error(err)
+		end
+
+	end
+
+	self.handlers = config.handlers
+
+	self:log(2, "QuikLuaDataFeed: initialize succeeded")
 end
 
 --
@@ -82,16 +131,15 @@ end
 ---values: simple true \
 ---@return table
 function QuikLuaDataFeed:quik_get_subscribed_events()
-	-- TODO: implement handler / subscriptions
-	local e_subs = {
-		OnAllTrade = true,
-		OnQuote = true,
-	}
-
-	for k, _ in pairs(e_subs) do
-		assert(not self.stats.subscriptions[k], "subscribed_events already called")
-		self.stats.subscriptions[k] = { n = 0, time_sum = 0.0 }
-		self:log(2, "Subscribed events: %s", k)
+	local e_subs = {}
+	for k, h in pairs(self.handlers) do
+		for e, is_subs in pairs(h.events) do
+			assert(is_subs)
+			if not self.stats.subscriptions[e] then
+				self.stats.subscriptions[e] = { n = 0, time_sum = 0.0 }
+			end
+			self:log(2, "Subscribed events: [%s] %s", h.name, e)
+		end
 	end
 
 	return e_subs
@@ -107,6 +155,18 @@ function QuikLuaDataFeed:quik_on_event(event)
 	assert(event, "nil event given")
 	assert(event.eid, "expected to have eid")
 	self:log(3, "Event %s", event.eid)
+
+	for _, h in pairs(self.handlers) do
+
+		local isok, err = xpcall(h.on_event, debug.traceback, h, event)
+		if not isok then
+			self:log(1, 'self.logger: %s', self.logger)
+			self:log(1, 'handler.logger: %s', h.transport.logger)
+			self:log(1, 'socket %s', self.logger.socket)
+			self:log(1, 'transp socket %s', h.transport.logger.socket)
+			error(err)
+		end
+	end
 
 	-- Recording event performance stats
 	self.stats.n_events = self.stats.n_events + 1

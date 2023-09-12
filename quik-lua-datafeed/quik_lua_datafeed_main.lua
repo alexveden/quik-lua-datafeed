@@ -2,6 +2,8 @@ package.cpath = '.\\lib\\?.dll;' .. package.cpath
 package.path = '.\\lib\\lua\\?.lua;' .. package.path
 
 local QuikLuaDatafeed = require("core.QuikLuaDatafeed")
+local ev = require('core.events')
+
 local config_isok, config = pcall(require, "config")
 if not config_isok then
 	error(string.format("Missing config.lua, or error in config. \r\nError: %s", config))
@@ -21,9 +23,9 @@ function OnInit()
 end
 
 function OnQuote(class_code, sec_code)
-	if IS_RUNNING and SUBSCRIBED_EVENTS[QuikLuaDatafeed.EON_QUOTE] then
+	if IS_RUNNING and SUBSCRIBED_EVENTS[ev.ON_QUOTE] then
 		table.sinsert(MAIN_QUEUE, {
-			eid = QuikLuaDatafeed.EON_QUOTE,
+			eid = ev.ON_QUOTE,
 			data = { class_code = class_code, sec_code = sec_code },
 		})
 	end
@@ -41,7 +43,6 @@ end
 --]
 ---@diagnostic disable-next-line
 function main()
-    print('hello')
 	---@type QuikLuaDataFeed
 	local feed = QuikLuaDatafeed.new(config)
 
@@ -56,7 +57,7 @@ function main()
 			feed:quik_on_event(MAIN_QUEUE[1])
 			table.sremove(MAIN_QUEUE, 1)
 		else
-			feed:quik_on_event({eid = QuikLuaDataFeed.EON_TIMER})
+			feed:quik_on_event({eid = ev.ON_IDLE})
 			sleep(1)
 		end
 	end

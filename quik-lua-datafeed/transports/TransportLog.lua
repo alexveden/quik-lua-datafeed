@@ -62,7 +62,7 @@ end
 ---@diagnostic disable-next-line
 function TransportLog:send(key, value)
 	assert(self.logger, "loger is not set")
-	self.logger.log("TransportLog:send() -> %s: %s", self:serialize_key(key), self:serialize_value(value))
+	self.logger:log("TransportLog:send() -> %s: %s", self:serialize_key(key), self:serialize_value(value))
 end
 
 return TransportLog

@@ -18,12 +18,12 @@ HandlerBase.__index = HandlerBase
 function HandlerBase.new(config)
 	---@class HandlerBase
 	assert(type(config) == "table", "HandlerBase: config must be a table or empty table `{}`")
-	assert(type(config.log_func) == 'function', "config.log_func not set or incorrect type")
 	local self = setmetatable({}, HandlerBase)
 	self.name = "HandlerBase"
 	self.transport = config.transport
 	self.events = {}
-	self.log_func = config.log_func
+	self.log_func = nil  -- must be set externally by QuiLuaDatafeed
+	self.log = HandlerBase.log
 
 	return self
 end
@@ -53,8 +53,8 @@ function HandlerBase.validate_custom_handler(custom_handler)
 	assert(type(custom_handler) == "table", ": custom_handler expected to be a table")
 	assert(custom_handler["name"], "custom_handler must have a name")
 	assert(custom_handler["transport"], "custom_handler must have transport")
-	assert(custom_handler['log_func'], 'custom_handler must have log_func' )
-	assert(type(custom_handler['log_func']) == 'function', 'custom_handler.log_func is not a function' )
+	-- assert(custom_handler['log_func'], 'custom_handler must have log_func' )
+	-- assert(type(custom_handler['log_func']) == 'function', 'custom_handler.log_func is not a function' )
 
 	for _, m in pairs({ "init", "stop", "on_event" }) do
 		assert(custom_handler[m], custom_handler["name"] .. ": custom_handler expected to have " .. m .. "()")

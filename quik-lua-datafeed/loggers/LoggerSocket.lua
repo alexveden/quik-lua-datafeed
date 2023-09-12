@@ -49,6 +49,7 @@ end
 
 function LoggerSocket:stop()
     -- Just a placeholder, nothing special to free
+    self.socket = nil
     return true
 end
 
