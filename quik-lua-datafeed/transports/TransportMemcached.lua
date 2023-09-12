@@ -1,3 +1,8 @@
+--[[
+--
+--  Transport for memcached server (string key: {json: data})
+--
+--]]
 local memcached = require("memcached")
 local cjson = require("cjson")
 cjson.encode_invalid_numbers(true) -- enable Nan serialization in json

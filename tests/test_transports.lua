@@ -10,6 +10,7 @@ local lu = require("luaunit")
 local Mock = require("Mock")
 local TransportBase = require("transports.TransportBase")
 local TransportMemcached = require("transports.TransportMemcached")
+local TransportLog = require("transports.TransportLog")
 
 TestTransportBase = {}
 function TestTransportBase:setUp() end
@@ -285,6 +286,19 @@ function TestTransportBase:test_memcached_connect_set_get()
 
 	t:stop()
 	lu.assertIsNil(t.memcached)
+end
+
+function TestTransportBase:test_transport_log()
+	local mock_log = Mock.func()
+	local config = { logger = {log = mock_log}}
+	local t = TransportLog.new(config)
+	lu.assertEquals(type(t), "table")
+	lu.assertEquals(t.name, "TransportLog")
+
+	t:send({'test', 'my', 'log'}, {data=1})
+	lu.assertEquals(mock_log.call_count, 1)
+	lu.assertEquals(mock_log.call_args[1], {"TransportLog:send() -> %s: %s", "test#my#log", '{"data":1}'})
+
 end
 
 os.exit(lu.LuaUnit.run())
