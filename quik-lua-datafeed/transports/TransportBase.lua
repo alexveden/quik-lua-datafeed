@@ -86,7 +86,7 @@ function TransportBase.validate_custom_transport(custom_transport)
 
 	if custom_transport.name ~= "TransportBase" then
 		local ser_key = custom_transport:serialize_key({ "A-Za-z0-9_", "--", "valid" })
-		assert(type(ser_key) == "string", "serialized key expected a string, got ".. type(ser_key))
+		assert(type(ser_key) == "string", "serialized key expected a string, got " .. type(ser_key))
 		assert(#ser_key > 0, "serialized key string is empty")
 
 		-- Check bad keys and make sure thansport also fails on them
@@ -99,15 +99,15 @@ function TransportBase.validate_custom_transport(custom_transport)
 			end
 		end
 
-		local nan = 0/0
+		local nan = 0 / 0
 		local ser_value = custom_transport:serialize_value({
 			["A-Za-z0-9_"] = "юникод?",
 			["fo!@)(#*!@#)"] = true,
-			another_key = {name = "Alex", skill = 45.12, profit = nan},
+			another_key = { name = "Alex", skill = 45.12, profit = nan },
 			bid = nan,
-			allocation = -1
+			allocation = -1,
 		})
-		assert(type(ser_value) == "string", "serialized value expected a string, got ".. type(ser_value))
+		assert(type(ser_value) == "string", "serialized value expected a string, got " .. type(ser_value))
 		assert(#ser_value > 0, "serialized value string is empty")
 	end
 end

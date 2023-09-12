@@ -14,7 +14,6 @@ local LoggerSocket = require("loggers.LoggerSocket")
 local LoggerFile = require("loggers.LoggerFile")
 local LoggerMulti = require("loggers.LoggerMulti")
 
-
 TestLoggerBase = {}
 function TestLoggerBase:setUp() end
 
@@ -108,7 +107,7 @@ function TestLoggerBase:test_logger_socket()
 
 	assert(l:stop())
 
-	l.socket = {send = Mock.func()}
+	l.socket = { send = Mock.func() }
 	l:log("test %s", l.name)
 
 	lu.assertEquals(l.socket.send.call_count, 1)
@@ -116,15 +115,15 @@ function TestLoggerBase:test_logger_socket()
 end
 
 function TestLoggerBase:test_logger_file()
-	local l = LoggerFile.new({ file = 'test.log' })
+	local l = LoggerFile.new({ file = "test.log" })
 	LoggerBase.validate_custom_logger(l)
 	lu.assertEquals(l.name, "LoggerFile")
 
-	local mock_io_open = Mock.global('io.open')
-	mock_io_open.return_value = {write = Mock.func(), close = Mock.func(), flush = Mock.func()}
+	local mock_io_open = Mock.global("io.open")
+	mock_io_open.return_value = { write = Mock.func(), close = Mock.func(), flush = Mock.func() }
 	assert(l:init())
 	lu.assertEquals(mock_io_open.call_count, 1)
-	lu.assertEquals(mock_io_open.call_args[1], {'test.log', 'a'})
+	lu.assertEquals(mock_io_open.call_args[1], { "test.log", "a" })
 
 	l:log("test %s", l.name)
 
@@ -140,18 +139,20 @@ function TestLoggerBase:test_logger_file()
 	lu.assertEquals(l.file, nil)
 
 	---@diagnostic enable
-
 end
 
 function TestLoggerBase:test_logger_file_write_mode()
-	local l = LoggerFile.new({ file = 'test.log', filemode = 'w' })
-	local mock_io_open = Mock.global('io.open')
-	mock_io_open.return_value = {write = Mock.func(), close = Mock.func(), flush = Mock.func()}
+	local l = LoggerFile.new({ file = "test.log", filemode = "w" })
+	local mock_io_open = Mock.global("io.open")
+	mock_io_open.return_value = { write = Mock.func(), close = Mock.func(), flush = Mock.func() }
 	assert(l:init())
 	lu.assertEquals(mock_io_open.call_count, 1)
-	lu.assertEquals(mock_io_open.call_args[1], {'test.log', 'w'})
-	lu.assertErrorMsgContains('config.filemode must be "w" or "a"', LoggerFile.new, { file = 'test.log', filemode = 'r' })
-
+	lu.assertEquals(mock_io_open.call_args[1], { "test.log", "w" })
+	lu.assertErrorMsgContains(
+		'config.filemode must be "w" or "a"',
+		LoggerFile.new,
+		{ file = "test.log", filemode = "r" }
+	)
 end
 
 function TestLoggerBase:test_logger_multi()
@@ -160,7 +161,7 @@ function TestLoggerBase:test_logger_multi()
 	l2.name = "LoggerPrintDbgStr2"
 
 	---@diagnostic disable
-	local logger = LoggerMulti.new({loggers = {l1, l2}})
+	local logger = LoggerMulti.new({ loggers = { l1, l2 } })
 	l1.init = Mock.func()
 	l2.init = Mock.func()
 	l1.stop = Mock.func()

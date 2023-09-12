@@ -198,11 +198,7 @@ function TestMock:test_mock_side_effect_array()
 
 	---@diagnostic disable-next-line
 	m.side_effect = 12
-	lu.assertErrorMsgContains(
-		"side_effect expected function or table,",
-		mock_test_module.param,
-		"test"
-	)
+	lu.assertErrorMsgContains("side_effect expected function or table,", mock_test_module.param, "test")
 end
 
 function TestMock:test_mock_call_args()
