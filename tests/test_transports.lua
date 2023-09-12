@@ -32,6 +32,7 @@ function TestTransportBase:test_transport_methods()
 	lu.assertErrorMsgContains("You must implement init() function in custom transport class", l.init)
 	lu.assertErrorMsgContains("You must implement stop() function in custom transport class", l.stop)
 	lu.assertErrorMsgContains("You must implement send(key, value) function in custom transport class", l.send)
+	lu.assertErrorMsgContains("You must implement is_init() function in custom transport class", l.is_init)
 	lu.assertErrorMsgContains(
 		"You must implement serialize_key(key) function in custom transport class",
 		l.serialize_key
@@ -47,6 +48,7 @@ function TestTransportBase:test_validate_custom_transport()
 		name = "custom",
 		init = function() end,
 		send = function() end,
+		is_init = function () end,
 		serialize_key = function(_, key)
 			TransportBase.validate_key(key)
 			return "adsa"
@@ -87,9 +89,14 @@ function TestTransportBase:test_validate_custom_transport()
 		{ name = "as", init = custom.init, send = custom.send }
 	)
 	lu.assertErrorMsgContains(
+		"custom_transport expected to have is_init()",
+		TransportBase.validate_custom_transport,
+		{ name = "as", init = custom.init, send = custom.send, stop = custom.stop}
+	)
+	lu.assertErrorMsgContains(
 		"custom_transport expected to have serialize_key()",
 		TransportBase.validate_custom_transport,
-		{ name = "as", init = custom.init, send = custom.send, stop = custom.stop }
+		{ name = "as", init = custom.init, send = custom.send, is_init=custom.is_init, stop = custom.stop }
 	)
 	lu.assertErrorMsgContains(
 		"custom_transport expected to have serialize_value()",
@@ -99,6 +106,7 @@ function TestTransportBase:test_validate_custom_transport()
 			init = custom.init,
 			send = custom.send,
 			stop = custom.stop,
+			is_init = custom.stop,
 			serialize_key = custom.serialize_key,
 		}
 	)
@@ -133,6 +141,9 @@ function TestTransportBase:test_validate_custom_transport_serialization_validati
 		name = "custom",
 		init = function() end,
 		send = function() end,
+		is_init = function ()
+			
+		end,
 		serialize_key = function()
 			return "adsa"
 		end,
@@ -161,6 +172,7 @@ function TestTransportBase:test_validate_custom_transport_serialization_validati
 	local custom = {
 		name = "custom",
 		init = function() end,
+		is_init = function() end,
 		send = function() end,
 		serialize_key = function(self, key)
 			TransportBase.validate_key(key)

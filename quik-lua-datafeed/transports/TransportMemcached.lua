@@ -35,6 +35,10 @@ function TransportMemcached:init()
 	return self.memcached or false
 end
 
+function TransportMemcached:is_init()
+	return self.memcached ~= nil
+end
+
 function TransportMemcached:stop()
 	if self.memcached then
 		self.memcached:quit()

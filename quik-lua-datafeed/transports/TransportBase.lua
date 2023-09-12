@@ -49,6 +49,10 @@ function TransportBase:stop()
 	error("You must implement stop() function in custom transport class")
 end
 
+function TransportBase:is_init()
+	error("You must implement is_init() function in custom transport class")
+end
+
 function TransportBase.validate_key(key)
 	assert(key, "key is nil")
 	assert(type(key) == "table", "key must be a table")
@@ -76,7 +80,7 @@ function TransportBase.validate_custom_transport(custom_transport)
 	assert(type(custom_transport) == "table", ": custom_transport expected to be a table")
 	assert(custom_transport["name"], "custom_transport must have a name")
 
-	for _, m in pairs({ "init", "send", "stop", "serialize_key", "serialize_value" }) do
+	for _, m in pairs({ "init", "send", "stop", "is_init", "serialize_key", "serialize_value" }) do
 		assert(custom_transport[m], custom_transport["name"] .. ": custom_transport expected to have " .. m .. "()")
 		assert(
 			type(custom_transport[m]) == "function",
