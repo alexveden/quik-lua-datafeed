@@ -87,7 +87,8 @@ RUN cd $HOME && \
 
 RUN cp $LUADIR/bin/lua53.dll $HOME/lua53.dll.orig
 
-RUN git clone https://github.com/diegonehab/luasocket.git && \
+RUN cd $HOME && \
+    git clone https://github.com/diegonehab/luasocket.git && \
     cd luasocket/src && \
     make \
       prefix=$LUADIR/ \
@@ -99,6 +100,16 @@ RUN git clone https://github.com/diegonehab/luasocket.git && \
       LD_mingw=x86_64-w64-mingw32-gcc \
       PLAT=mingw \
       all install
+
+RUN cd $HOME && \
+    git clone https://github.com/mpx/lua-cjson.git && \ 
+    cd lua-cjson && \
+    make \
+        TARGET=cjson.dll \
+        PREFIX=$LUADIR/ \
+        CJSON_LDFLAGS="-shared -L$LUADIR/bin -llua53" \
+        LUA_BIN_SUFFIX=.lua \
+      install
 
 ## All files
 RUN md5sum $HOME/lua53.dll.orig && \

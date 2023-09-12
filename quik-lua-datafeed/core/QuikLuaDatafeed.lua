@@ -39,14 +39,14 @@ function QuikLuaDataFeed:initialize(config)
 	assert(config, "no config")
 	self.logger = config.logger or error("logger is not set in config.logger")
 
-	local isok, err = pcall(LoggerBase.validate_custom_logger, self.logger)
+	local isok, err = xpcall(LoggerBase.validate_custom_logger, debug.traceback, self.logger)
 	if not isok then
-		error("Logger validation error: " .. err)
+		error("Logger validation error: \n" .. err)
 	end
 
-	isok, err = pcall(self.logger.init, self.logger)
+	isok, err = xpcall(self.logger.init, debug.traceback, self.logger)
 	if not isok then
-		error("Logger initialization error: " .. err)
+		error("Logger initialization error: \n" .. err)
 	end
 
 	self:log(2, "QuikLuaDataFeed: initialized logger engine")
