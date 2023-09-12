@@ -15,22 +15,16 @@ end
 --]
 
 function OnInit()
-	IS_RUNNING = true
+	IS_RUNNING = false
 	MAIN_QUEUE = {}
 	SUBSCRIBED_EVENTS = {}
 end
 
-function OnAllTrade(all_trade)
-	if IS_RUNNING and SUBSCRIBED_EVENTS["OnAllTrade"] then
-		table.sinsert(MAIN_QUEUE, { callback = "OnAllTrade", value = all_trade })
-	end
-end
-
 function OnQuote(class_code, sec_code)
-	if IS_RUNNING and SUBSCRIBED_EVENTS["OnQuote"] then
+	if IS_RUNNING and SUBSCRIBED_EVENTS[QuikLuaDatafeed.EON_QUOTE] then
 		table.sinsert(MAIN_QUEUE, {
-			callback = "OnQuote",
-			t = { class_code = class_code, sec_code = sec_code },
+			eid = QuikLuaDatafeed.EON_QUOTE,
+			data = { class_code = class_code, sec_code = sec_code },
 		})
 	end
 end
@@ -53,6 +47,7 @@ function main()
 
 	SUBSCRIBED_EVENTS = feed:quik_get_subscribed_events()
 
+	IS_RUNNING = true
 	while IS_RUNNING do
 		-- collectgarbage("collect")
 		feed:quik_notify_que_length(#MAIN_QUEUE)
@@ -61,14 +56,14 @@ function main()
 			feed:quik_on_event(MAIN_QUEUE[1])
 			table.sremove(MAIN_QUEUE, 1)
 		else
-			-- TODO: implement timer event in the case if no other event waiting
+			feed:quik_on_event({eid = QuikLuaDataFeed.EON_TIMER})
 			sleep(1)
 		end
 	end
 
 	feed:log(2, "main: stopping")
 	local stats = feed:get_stats(true)
-	feed:log(2, "feed stats: %s", stats)
+	feed:log(2, "feed stats:\n %s", stats)
 	feed:stop()
-	error(stats)
+	error('\n'..stats)
 end

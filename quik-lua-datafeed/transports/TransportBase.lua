@@ -12,8 +12,6 @@ function TransportBase.new(config)
 	local self = setmetatable({}, TransportBase)
 	self.name = "TransportBase"
 
-	TransportBase.validate_custom_transport(self)
-
 	return self
 end
 

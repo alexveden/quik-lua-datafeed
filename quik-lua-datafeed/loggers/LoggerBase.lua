@@ -13,8 +13,6 @@ function LoggerBase.new(config)
 	local self = setmetatable({}, LoggerBase)
 	self.name = 'LoggerBase'
 
-	LoggerBase.validate_custom_logger(self)
-
 	return self
 end
 

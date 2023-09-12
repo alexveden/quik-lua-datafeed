@@ -48,10 +48,11 @@ function QuikLuaDataFeed:initialize(config)
 	if not isok then
 		error("Logger initialization error: \n" .. err)
 	end
-
 	self:log(2, "QuikLuaDataFeed: initialized logger engine")
+
+	self:log(2, "QuikLuaDataFeed: initializing transports")
+
 	self:log(2, "QuikLuaDataFeed: initializing handlers")
-	self:log(2, "QuikLuaDataFeed: initializing serializers")
 end
 
 --
@@ -96,23 +97,28 @@ function QuikLuaDataFeed:quik_get_subscribed_events()
 	return e_subs
 end
 
+
+---@class Event
+---@field eid EventID unique event id
+---@field data table | nil arbitrary event data
+
 ---Main Quik Event Handler
----@param event table
+---@param event Event incoming event
 function QuikLuaDataFeed:quik_on_event(event)
 	local time_begin = os.clock()
 
 	assert(event, "nil event given")
-	assert(event.callback, "expected to have callback name")
-	self:log(3, "Event %s", event.callback)
+	assert(event.eid, "expected to have eid")
+	self:log(3, "Event %s", event.eid)
 
 	-- Recording event performance stats
 	self.stats.n_events = self.stats.n_events + 1
-	local n = self.stats.subscriptions[event.callback].n
-	self.stats.subscriptions[event.callback].n = n + 1
+	local n = self.stats.subscriptions[event.eid].n
+	self.stats.subscriptions[event.eid].n = n + 1
 
-	local time = self.stats.subscriptions[event.callback].time_sum
+	local time = self.stats.subscriptions[event.eid].time_sum
 	local elapsed = os.clock() - time_begin
-	self.stats.subscriptions[event.callback].time_sum = time + elapsed
+	self.stats.subscriptions[event.eid].time_sum = time + elapsed
 end
 
 ---Returns QuikLuaDataFeed stats
