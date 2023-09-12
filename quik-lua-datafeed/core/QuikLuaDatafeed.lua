@@ -98,9 +98,6 @@ function QuikLuaDataFeed:quik_get_subscribed_events()
 end
 
 
----@class Event
----@field eid EventID unique event id
----@field data table | nil arbitrary event data
 
 ---Main Quik Event Handler
 ---@param event Event incoming event
