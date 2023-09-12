@@ -9,7 +9,7 @@ local function timeit(name, n, func)
 	end
 
 	local elapsed = os.clock() - t_begin
-	print(name .. "> elapsed: " .. elapsed .. "sec, avg. per call: " .. elapsed / n)
+	print(string.format("%s> steps: %s elapsed: %ssec, avg. per call: %s", name, n, elapsed, elapsed/n))
 end
 
 local transport = TransportMemcached.new({})
