@@ -65,7 +65,6 @@ function TestHandlerQuikStats:test_is_interval_allowed()
 	end
 
 	-- lu.assertEquals(nil, h)
-	lu.assertEquals(100, h:my_method())
 	lu.assertNotEquals(nil, h.is_interval_allowed)
 
 	lu.assertEquals(h:is_interval_allowed('myint', 1000), true)

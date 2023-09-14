@@ -41,3 +41,4 @@ luac.out
 # quik-lua-datafeed
 quik-lua-datafeed/config.lua
 tmux_run.sh
+tests/luacov-html/
