@@ -99,9 +99,7 @@ local function unpatch_table(tbl, fpath, table_name, orig_func)
 	local _tbl = tbl
 
 	for t in string.gmatch(fpath, "([^.]+)") do
-		if _tbl[t] == nil then
-			error(string.format("%s[%s]function is not found.", table_name, fpath))
-		end
+		assert(_tbl[t], string.format("%s[%s]function is not found.", table_name, fpath))
 
 		if type(_tbl[t]) == "table" then
 			_tbl = _tbl[t]
