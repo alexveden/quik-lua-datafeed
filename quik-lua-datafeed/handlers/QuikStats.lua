@@ -5,6 +5,44 @@ local ev = require("core.events")
 local QuikStats = {}
 QuikStats.__index = QuikStats
 
+local params_status_list = {
+	"VERSION",
+	"TRADEDATE",
+	"SERVERTIME",
+	"LASTRECORDTIME",
+	"NUMRECORDS",
+	"LASTRECORD",
+	"LATERECORD",
+	"CONNECTION",
+	"IPADDRESS",
+	"IPPORT",
+	"IPCOMMENT",
+	"SERVER",
+	"SESSIONID",
+	"USER",
+	"USERID",
+	"ORG",
+	"MEMORY",
+	"LOCALTIME",
+	"CONNECTIONTIME",
+	"MESSAGESSENT",
+	"ALLSENT",
+	"BYTESSENT",
+	"BYTESPERSECSENT",
+	"MESSAGESRECV",
+	"BYTESRECV",
+	"ALLRECV",
+	"BYTESPERSECRECV",
+	"AVGSENT",
+	"AVGRECV",
+	"LASTPINGTIME",
+	"LASTPINGDURATION",
+	"AVGPINGDURATION",
+	"MAXPINGTIME",
+	"MAXPINGDURATION",
+}
+
+
 function QuikStats.new(config)
 	local self = HandlerBase.new(config, QuikStats)
 
@@ -30,46 +68,11 @@ end
 ---Main event processing
 ---@param event Event
 function QuikStats:on_event(event)
-	if self:is_interval_allowed("stats", 5000) then
-		local params = {
-			"VERSION",
-			"TRADEDATE",
-			"SERVERTIME",
-			"LASTRECORDTIME",
-			"NUMRECORDS",
-			"LASTRECORD",
-			"LATERECORD",
-			"CONNECTION",
-			"IPADDRESS",
-			"IPPORT",
-			"IPCOMMENT",
-			"SERVER",
-			"SESSIONID",
-			"USER",
-			"USERID",
-			"ORG",
-			"MEMORY",
-			"LOCALTIME",
-			"CONNECTIONTIME",
-			"MESSAGESSENT",
-			"ALLSENT",
-			"BYTESSENT",
-			"BYTESPERSECSENT",
-			"MESSAGESRECV",
-			"BYTESRECV",
-			"ALLRECV",
-			"BYTESPERSECRECV",
-			"AVGSENT",
-			"AVGRECV",
-			"LASTPINGTIME",
-			"LASTPINGDURATION",
-			"AVGPINGDURATION",
-			"MAXPINGTIME",
-			"MAXPINGDURATION",
-		}
+	assert(self, 'self is nil, calling obj.method instead of obj:method?')
 
+	if self:is_interval_allowed("stats", 5000) then
 		local status = {}
-		for _, p in pairs(params) do
+		for _, p in pairs(params_status_list) do
 			status[p] = getInfoParam(p)
 		end
 		self.transport:send({ "quik", "status" }, status)
