@@ -128,7 +128,7 @@ function TestTransportBase:test_key_validation()
 
 	-- No way to check last nil :( Because every missing index is nil
 	-- lu.assertErrorMsgContains('key i=2 expected to be string, got nil', l.validate_key, {'key', nil})
-	-- lu.assertErrorMsgContains('key i=5 expected to be string, got nil', l.validate_key, {'1', '2', '3', '4', nil})
+	lu.assertErrorMsgContains('key array has nil in the middle', l.validate_key, {'1', '2', nil, '4', nil})
 	lu.assertErrorMsgContains("key is zero length", l.validate_key, { nil })
 	lu.assertErrorMsgContains("key must be alphanumeric", l.validate_key, { "val_#" })
 	lu.assertErrorMsgContains("key must be alphanumeric", l.validate_key, { "AZaz09_", "val_луа" })
@@ -160,6 +160,11 @@ function TestTransportBase:test_validate_custom_transport_serialization_validati
 		return ""
 	end
 	lu.assertErrorMsgContains("serialized key string is empty", TransportBase.validate_custom_transport, custom)
+
+	custom.serialize_key = function()
+		return "passes#bad#validation#keys"
+	end
+	lu.assertErrorMsgContains(" test failed passed one of the malformed keys,", TransportBase.validate_custom_transport, custom)
 	---@diagnostic enable
 end
 
@@ -210,6 +215,7 @@ function TestTransportBase:test_memcached_new()
 	lu.assertEquals(l.memcached, nil)
 	lu.assertEquals(l.serialize_key, TransportMemcached.serialize_key)
 	lu.assertEquals(l.serialize_value, TransportMemcached.serialize_value)
+	lu.assertEquals(l:is_init(), false)
 end
 
 function TestTransportBase:test_memcached_new_config()
@@ -265,8 +271,10 @@ end
 function TestTransportBase:test_memcached_connect_set_get()
 	local t = TransportMemcached.new({})
 	lu.assertIsNil(t.memcached)
+	lu.assertEquals(t:is_init(), false)
 
 	t:init()
+	lu.assertEquals(t:is_init(), true)
 	lu.assertNotIsNil(t.memcached)
 	t:send({ "test", "my", "key" }, { test = "data" })
 
@@ -274,6 +282,7 @@ function TestTransportBase:test_memcached_connect_set_get()
 	lu.assertEquals('{"test":"data"}', memcached_data)
 
 	t:stop()
+	lu.assertEquals(t:is_init(), false)
 	lu.assertIsNil(t.memcached)
 end
 
@@ -283,6 +292,10 @@ function TestTransportBase:test_transport_log()
 	local t = TransportLog.new(config)
 	lu.assertEquals(type(t), "table")
 	lu.assertEquals(t.name, "TransportLog")
+
+	lu.assertEquals(t:init(), true)
+	lu.assertEquals(t:is_init(), true)
+	lu.assertEquals(t:stop(), true)
 
 	t:send({ "test", "my", "log" }, { data = 1 })
 	lu.assertEquals(mock_log.call_count, 1)

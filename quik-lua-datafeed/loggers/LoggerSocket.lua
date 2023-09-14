@@ -3,6 +3,7 @@
 --    Without connection all log records just dropped
 --
 local LoggerBase = require('loggers.LoggerBase')
+local luasocket = require('socket')
 
 ---@class LoggerSocket: LoggerBase
 ---@field socket table luasocket UDP socket instance
@@ -32,11 +33,6 @@ function LoggerSocket.new(config)
 end
 
 function LoggerSocket:init()
-    local isok, luasocket = pcall(require, "socket")
-    if not isok then
-        error('luasocket module is not found, try to install it via luarocks or probably shared dll issue')
-    end
-
     -- convert host name to ip address
     local ip = assert(luasocket.dns.toip(self.host))
 
