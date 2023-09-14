@@ -119,7 +119,7 @@ function TestHandlerBase:test_is_interval_allowed()
 	local h = HandlerBase.new({
 		transport = t,
 	})
-	h.log_func = function()	end,
+	h.log_func = function()	end
 
 	lu.assertIsNil(h.event_intervals['myint'])
 	lu.assertEquals(h:is_interval_allowed('myint', 1000), true)
