@@ -1,3 +1,9 @@
 reporter = "html"
 reportfile = "luacov.report.html"
 
+exclude = {
+   "lib$",      -- the include folder
+   "lib%/.+$",  -- and everything namespaced underneath it
+   "/usr/local%/.+$",  -- luarocks stuff
+   "/usr/share%/.+$",  -- luarocks stuff
+}

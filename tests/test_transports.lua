@@ -4,7 +4,7 @@ package.path = "../quik-lua-datafeed/?.lua;../quik-lua-datafeed/lib/lua/?.lua;" 
 --  https://github.com/bluebird75/luaunit
 --
 --  To LSP autocompletion make sure...
---  NeoVim: lua_ls (requires adding config.setting.Lua.workspace.library=<luarocks path>)
+--  NeoVim: lua_ls (requires adding config.setting.Lua.workspace.library=luarocks path)
 --
 local lu = require("luaunit")
 local Mock = require("Mock")
@@ -144,12 +144,8 @@ function TestTransportBase:test_validate_custom_transport_serialization_validati
 		init = function() end,
 		send = function() end,
 		is_init = function() end,
-		serialize_key = function()
-			return "adsa"
-		end,
-		serialize_value = function()
-			return "asdad"
-		end,
+		serialize_key = function() end,
+		serialize_value = function() end,
 		stop = function() end,
 	}
 
@@ -178,9 +174,7 @@ function TestTransportBase:test_validate_custom_transport_serialization_validati
 			TransportBase.validate_key(key)
 			return "adsa"
 		end,
-		serialize_value = function()
-			return "asdad"
-		end,
+		serialize_value = function() end,
 		stop = function() end,
 	}
 	custom.serialize_value = function() end
@@ -219,13 +213,8 @@ function TestTransportBase:test_memcached_new()
 end
 
 function TestTransportBase:test_memcached_new_config()
-	local function fkey(_, key)
-		TransportBase.validate_key(key)
-		return "abvsa"
-	end
-	local function fvalue()
-		return "bbbbsds"
-	end
+	local function fkey(_, key)	end
+	local function fvalue() end
 	local config =
 		{ host = "192.168.11.1", port = 777, exptime_sec = 1, serialize_key = fkey, serialize_value = fvalue }
 	local l = TransportMemcached.new(config)

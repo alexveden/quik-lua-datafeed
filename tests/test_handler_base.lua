@@ -18,13 +18,8 @@ local function mock_transport()
 		init = function() end,
 		is_init = function() end,
 		send = function() end,
-		serialize_key = function(self, key)
-			TransportBase.validate_key(key)
-			return "adsa"
-		end,
-		serialize_value = function()
-			return "asdad"
-		end,
+		serialize_key = function(self, key) end,
+		serialize_value = function() end,
 		stop = function() end,
 	}
 end
@@ -124,9 +119,7 @@ function TestHandlerBase:test_is_interval_allowed()
 	local h = HandlerBase.new({
 		transport = t,
 	})
-	h.log_func = function(level, msg_templ, ...)
-		l(l, level, msg_templ, ...)
-	end
+	h.log_func = function()	end,
 
 	lu.assertIsNil(h.event_intervals['myint'])
 	lu.assertEquals(h:is_interval_allowed('myint', 1000), true)
