@@ -162,6 +162,8 @@ function TestLoggerBase:test_logger_multi()
 
 	---@diagnostic disable
 	local logger = LoggerMulti.new({ loggers = { l1, l2 } })
+
+	-- lu.assertEquals(logger, nil)
 	l1.init = Mock.func()
 	l2.init = Mock.func()
 	l1.stop = Mock.func()

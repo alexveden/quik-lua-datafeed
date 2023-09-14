@@ -11,8 +11,7 @@ local LoggerFile = {}
 LoggerFile.__index = LoggerFile
 
 function LoggerFile.new(config)
-	local super = LoggerBase.new(config)
-	local self = setmetatable(super, LoggerFile)
+	local self = LoggerBase.new(config, LoggerFile)
 
 	-- setting derived values
 	self.name = "LoggerFile"

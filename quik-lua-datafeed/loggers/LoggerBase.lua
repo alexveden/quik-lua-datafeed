@@ -1,16 +1,32 @@
 ---@class LoggerBase
 ---@field name string simple logger name
-LoggerBase = {
-}
+LoggerBase = {}
 LoggerBase.__index = LoggerBase
 
+
 ---Creates new instance of LoggerBase class
+---@generic LoggerChildMeta: LoggerBase
 ---@param config table - configuration table
----@return LoggerBase
-function LoggerBase.new(config)
-	---@class LoggerBase
+---@param child_meta? LoggerChildMeta - child class metatable
+---@return LoggerChildMeta
+function LoggerBase.new(config, child_meta)
 	assert(type(config) == "table", 'LoggerBase: config must be a table or empty table `{}`')
 	local self = setmetatable({}, LoggerBase)
+
+	-- child class method overriding
+	child_meta = child_meta or {}
+	assert(type(child_meta) == "table", "HandlerBase: child_meta must be a table or empty table `{}`")
+	if child_meta.__index then
+		assert(type(child_meta.__index) == 'table', 'child_meta.__index expected table')
+
+		for field, func in pairs(child_meta.__index) do
+			if field ~= 'new' and field ~= "__index" then
+				self[field] = func
+			end
+		end
+	end
+	--- end child class method overriding
+	--
 	self.name = 'LoggerBase'
 
 	return self

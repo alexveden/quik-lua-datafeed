@@ -9,8 +9,7 @@ local LoggerMulti = {}
 LoggerMulti.__index = LoggerMulti
 
 function LoggerMulti.new(config)
-	local super = LoggerBase.new(config)
-	local self = setmetatable(super, LoggerMulti)
+	local self = LoggerBase.new(config, LoggerMulti)
 
 	-- setting derived values
 	self.name = "LoggerMulti"

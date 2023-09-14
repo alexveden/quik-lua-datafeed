@@ -118,4 +118,22 @@ function TestHandlerBase:test_handler_validation()
 	lu.assertErrorMsgContains("custom_handler must have a name", HandlerBase.validate_custom_handler, h)
 end
 
+function TestHandlerBase:test_is_interval_allowed()
+	local t = mock_transport()
+	local l = Mock.func()
+	local h = HandlerBase.new({
+		transport = t,
+	})
+	h.log_func = function(level, msg_templ, ...)
+		l(l, level, msg_templ, ...)
+	end
+
+	lu.assertIsNil(h.event_intervals['myint'])
+	lu.assertEquals(h:is_interval_allowed('myint', 1000), true)
+	lu.assertNotIsNil(h.event_intervals['myint'])
+	lu.assertEquals(h:is_interval_allowed('myint', 1000), false)
+	lu.assertEquals(h:is_interval_allowed('myint', 1000), false)
+	lu.assertEquals(h:is_interval_allowed('myint', 0), true)
+end
+
 os.exit(lu.LuaUnit.run())

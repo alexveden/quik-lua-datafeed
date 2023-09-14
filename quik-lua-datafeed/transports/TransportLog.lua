@@ -12,8 +12,7 @@ local TransportLog = {}
 TransportLog.__index = TransportLog
 
 function TransportLog.new(config)
-	local super = TransportBase.new(config)
-	local self = setmetatable(super, TransportLog)
+	local self = TransportBase.new(config, TransportLog)
 
 	-- setting derived values
 	assert(config.logger, "You must set config.logger (logger instance)")

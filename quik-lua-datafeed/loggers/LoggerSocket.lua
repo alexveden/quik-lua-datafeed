@@ -12,8 +12,7 @@ local LoggerSocket = {}
 LoggerSocket.__index = LoggerSocket
 
 function LoggerSocket.new(config)
-	local super = LoggerBase.new(config)
-	local self = setmetatable(super, LoggerSocket)
+	local self = LoggerBase.new(config, LoggerSocket)
 
     -- setting derived values
 	self.name = "LoggerSocket"

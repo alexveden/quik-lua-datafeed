@@ -18,8 +18,7 @@ local TransportMemcached = {}
 TransportMemcached.__index = TransportMemcached
 
 function TransportMemcached.new(config)
-	local super = TransportBase.new(config)
-	local self = setmetatable(super, TransportMemcached)
+	local self = TransportBase.new(config, TransportMemcached)
 
 	-- setting derived values
 	self.name = "TransportMemcached"
@@ -30,7 +29,7 @@ function TransportMemcached.new(config)
 	self.serialize_value = config.serialize_value or TransportMemcached.serialize_value
 	self.memcached = nil
 
-	TransportBase.validate_custom_transport(self)
+	-- TransportBase.validate_custom_transport(self)
 
 	return self
 end

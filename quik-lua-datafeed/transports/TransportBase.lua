@@ -3,13 +3,32 @@
 TransportBase = {}
 TransportBase.__index = TransportBase
 
+
 ---Creates new instance of TransportBase class
+---@generic TransportChildMeta: TransportBase 
 ---@param config table - configuration table
----@return TransportBase
-function TransportBase.new(config)
+---@param child_meta? TransportChildMeta child meta class
+---@return TransportChildMeta
+function TransportBase.new(config, child_meta)
 	---@class TransportBase
 	assert(type(config) == "table", "TransportBase: config must be a table or empty table `{}`")
 	local self = setmetatable({}, TransportBase)
+
+
+	-- child class method overriding
+	child_meta = child_meta or {}
+	assert(type(child_meta) == "table", "HandlerBase: child_meta must be a table or empty table `{}`")
+	if child_meta.__index then
+		assert(type(child_meta.__index) == 'table', 'child_meta.__index expected table')
+
+		for field, func in pairs(child_meta.__index) do
+			if field ~= 'new' and field ~= "__index" then
+				self[field] = func
+			end
+		end
+	end
+	--- end child class method overriding
+
 	self.name = "TransportBase"
 
 	return self

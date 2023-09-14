@@ -28,19 +28,20 @@ function TestTransportBase:test_transport_new()
 end
 
 function TestTransportBase:test_transport_methods()
-	local l = TransportBase.new({})
-
-	lu.assertErrorMsgContains("You must implement init() function in custom transport class", l.init)
-	lu.assertErrorMsgContains("You must implement stop() function in custom transport class", l.stop)
-	lu.assertErrorMsgContains("You must implement send(key, value) function in custom transport class", l.send)
-	lu.assertErrorMsgContains("You must implement is_init() function in custom transport class", l.is_init)
+	local t = TransportBase.new({})
+	
+	-- lu.assertEquals(nil, t.__index)
+	lu.assertErrorMsgContains("You must implement init() function in custom transport class", t.init)
+	lu.assertErrorMsgContains("You must implement stop() function in custom transport class", t.stop)
+	lu.assertErrorMsgContains("You must implement send(key, value) function in custom transport class", t.send)
+	lu.assertErrorMsgContains("You must implement is_init() function in custom transport class", t.is_init)
 	lu.assertErrorMsgContains(
 		"You must implement serialize_key(key) function in custom transport class",
-		l.serialize_key
+		t.serialize_key
 	)
 	lu.assertErrorMsgContains(
 		"You must implement serialize_value(value) function in custom transport class",
-		l.serialize_value
+		t.serialize_value
 	)
 end
 
@@ -240,6 +241,7 @@ end
 
 function TestTransportBase:test_memcached_serialize()
 	local t = TransportMemcached.new({})
+	-- lu.assertEquals(tbase, t)
 
 	lu.assertEquals("my#key#test", t:serialize_key({ "my", "key", "test" }))
 	local nan = 0 / 0
