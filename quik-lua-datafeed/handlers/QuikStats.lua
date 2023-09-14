@@ -14,7 +14,6 @@ function QuikStats.new(config)
 		[ev.ON_IDLE] = true,
 	}
 
-	HandlerBase.validate_custom_handler(self)
 	return self
 end
 
@@ -28,17 +27,56 @@ function QuikStats:stop()
 	return true
 end
 
-function QuikStats:my_method()
-	return 100
-end
-
 ---Main event processing
 ---@param event Event
 function QuikStats:on_event(event)
-	if self:is_interval_allowed('stats', 1000) then
-		local resp = getSecurityInfo("SPBFUT", "RIU3")
-		self.transport:send({ "quik", "stats", "RIU3" }, resp)
+	if self:is_interval_allowed("stats", 5000) then
+		local params = {
+			"VERSION",
+			"TRADEDATE",
+			"SERVERTIME",
+			"LASTRECORDTIME",
+			"NUMRECORDS",
+			"LASTRECORD",
+			"LATERECORD",
+			"CONNECTION",
+			"IPADDRESS",
+			"IPPORT",
+			"IPCOMMENT",
+			"SERVER",
+			"SESSIONID",
+			"USER",
+			"USERID",
+			"ORG",
+			"MEMORY",
+			"LOCALTIME",
+			"CONNECTIONTIME",
+			"MESSAGESSENT",
+			"ALLSENT",
+			"BYTESSENT",
+			"BYTESPERSECSENT",
+			"MESSAGESRECV",
+			"BYTESRECV",
+			"ALLRECV",
+			"BYTESPERSECRECV",
+			"AVGSENT",
+			"AVGRECV",
+			"LASTPINGTIME",
+			"LASTPINGDURATION",
+			"AVGPINGDURATION",
+			"MAXPINGTIME",
+			"MAXPINGDURATION",
+		}
+
+		local status = {}
+		for _, p in pairs(params) do
+			status[p] = getInfoParam(p)
+		end
+		self.transport:send({ "quik", "status" }, status)
+		return true
 	end
+
+	return false
 end
 
 return QuikStats
