@@ -1,4 +1,5 @@
 local cjson = require("cjson")
+local ev = require("core.events")
 local LoggerBase = require("loggers.LoggerBase")
 local HandlerBase = require("handlers.HandlerBase")
 local TransportBase = require("transports.TransportBase")
@@ -13,6 +14,7 @@ local TransportBase = require("transports.TransportBase")
 ---@field max_que_length number maximum number of events waiting for processing in Quik que
 ---@field current_que_length number most recent que length
 ---@field subscriptions table per-event type statistics
+---@field handlers table per-handler event processing stats
 
 ---@class QuikLuaDataFeed
 ---@field verbosity_level number level of logging verbosity
@@ -26,6 +28,7 @@ QuikLuaDataFeed = {
 		max_que_length = 0,
 		current_que_length = 0,
 		subscriptions = {},
+		handlers = {}
 	},
 }
 QuikLuaDataFeed.__index = QuikLuaDataFeed
@@ -90,6 +93,8 @@ function QuikLuaDataFeed:initialize(config)
 			end
 		end
 
+		self.stats.handlers[handler.name] = {n = 0, time_sum = 0.0}
+
 		handler.log_func = log_func
 
 		isok, err = xpcall(handler.init, debug.traceback, handler)
@@ -132,7 +137,7 @@ end
 ---@return table
 function QuikLuaDataFeed:quik_get_subscribed_events()
 	local e_subs = {}
-	for k, h in pairs(self.handlers) do
+	for _, h in pairs(self.handlers) do
 		for e, is_subs in pairs(h.events) do
 			assert(is_subs)
 			if not self.stats.subscriptions[e] then
@@ -154,17 +159,25 @@ function QuikLuaDataFeed:quik_on_event(event)
 
 	assert(event, "nil event given")
 	assert(event.eid, "expected to have eid")
-	self:log(3, "Event %s", event.eid)
+	if event.eid ~= ev.ON_IDLE then
+		self:log(3, "Event %s", event.eid)
+	end
 
 	for _, h in pairs(self.handlers) do
-
-		local isok, err = xpcall(h.on_event, debug.traceback, h, event)
+		local handler_begin = os.clock()
+		local isok, ret = xpcall(h.on_event, debug.traceback, h, event)
 		if not isok then
-			self:log(1, 'self.logger: %s', self.logger)
-			self:log(1, 'handler.logger: %s', h.transport.logger)
-			self:log(1, 'socket %s', self.logger.socket)
-			self:log(1, 'transp socket %s', h.transport.logger.socket)
-			error(err)
+			error(ret)
+		end
+
+		if ret == true then
+			-- h.on_event returned true, this means event was processed
+			local time = self.stats.handlers[h.name].time_sum
+			local n = self.stats.handlers[h.name].n
+			local _elapsed = os.clock() - handler_begin
+
+			self.stats.handlers[h.name].time_sum = time + _elapsed
+			self.stats.handlers[h.name].n = n + 1
 		end
 	end
 
@@ -186,7 +199,7 @@ function QuikLuaDataFeed:get_stats(as_json)
 
 	local result = {}
 	for k, v in pairs(self.stats) do
-		if k == "subscriptions" then
+		if k == "subscriptions" or k == 'handlers' then
 			assert(type(v) == "table")
 
 			local s = {}
