@@ -3,7 +3,9 @@
 ---@field data table | nil arbitrary event data
 
 ---@enum EventID
-return {
+local EVENTS = {
 	ON_IDLE = "OnIdle",
 	ON_QUOTE = "OnQuote",
 }
+
+return EVENTS

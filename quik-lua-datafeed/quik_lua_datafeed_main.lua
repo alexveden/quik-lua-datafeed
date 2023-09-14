@@ -63,7 +63,7 @@ function main()
 	end
 
 	feed:log(2, "main: stopping")
-	local stats = feed:get_stats(true)
+	local stats = feed.stats:get_stats(true)
 	feed:log(2, "feed stats:\n %s", stats)
 	feed:stop()
 	error('\n'..stats)
