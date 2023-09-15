@@ -4,7 +4,7 @@ package.path = '.\\lib\\lua\\?.lua;' .. package.path
 local QuikLuaDatafeed = require("core.QuikLuaDatafeed")
 local ev = require('core.events')
 
-local config_isok, config = pcall(require, "config")
+local config_isok, config = xpcall(require, debug.traceback, "config")
 if not config_isok then
 	error(string.format("Missing config.lua, or error in config. \r\nError: %s", config))
 end
