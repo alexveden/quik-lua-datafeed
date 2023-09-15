@@ -1,3 +1,10 @@
+--[
+-- QuikStats
+-- Обработчик текущего состояния терминала 
+-- 
+-- Keys:
+-- {'quik', 'status'}
+--]
 local HandlerBase = require("handlers.HandlerBase")
 local ev = require("core.events")
 

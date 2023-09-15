@@ -83,6 +83,8 @@ function QuikLuaDataFeed:initialize(config)
 			if not isok then
 				error("Transport initialization failed: \n" .. err)
 			end
+
+			self:log(1, "Handler[%s] key {'my', 'transport', 'key} -> %s", handler.name, handler.transport:serialize_key({'my', 'transport', 'key'}))
 		end
 
 		self.stats:set_handler(handler)
