@@ -221,7 +221,7 @@ end
 function TestMock:test_mock_object__not_afunction_error()
 	local obj = {
 		test = 1,
-		add = function(a, b) end,
+		add = function() end,
 	}
 
 	lu.assertErrorMsgContains("object[test] is not a function, but number", Mock.object, obj, "test")
@@ -231,7 +231,7 @@ function TestMock:test_mock_object__already_patched()
 	local obj = {
 		test = 1,
 		math = {
-			add = function(a, b) end,
+			add = function() end,
 		},
 	}
 

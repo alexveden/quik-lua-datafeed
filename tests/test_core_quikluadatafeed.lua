@@ -304,7 +304,7 @@ function TestQuikLuaDatafeed:test_quik_on_event_errors()
 
     local df = QuikLuaDatafeed.new(config)
 
-    local events = df:quik_subscribe_events()
+    df:quik_subscribe_events()
 
 	-- Event was processed, stats were reported
 	h.on_event.side_effect = function ()
