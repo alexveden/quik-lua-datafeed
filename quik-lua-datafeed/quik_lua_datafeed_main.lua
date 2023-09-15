@@ -46,7 +46,7 @@ function main()
 	---@type QuikLuaDataFeed
 	local feed = QuikLuaDatafeed.new(config)
 
-	SUBSCRIBED_EVENTS = feed:quik_get_subscribed_events()
+	SUBSCRIBED_EVENTS = feed:quik_subscribe_events()
 
 	IS_RUNNING = true
 	while IS_RUNNING do

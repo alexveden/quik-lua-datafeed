@@ -100,7 +100,7 @@ function TransportBase.validate_custom_transport(custom_transport)
 	for _, m in pairs({ "init", "send", "stop", "is_init", "serialize_key", "serialize_value" }) do
 		assert(custom_transport[m], custom_transport["name"] .. ": custom_transport expected to have " .. m .. "()")
 		assert(
-			type(custom_transport[m]) == "function",
+			type(custom_transport[m]) == "function" or custom_transport[m].__call,
 			custom_transport["name"] .. ": custom_transport expected to have " .. m .. "() as a function"
 		)
 	end

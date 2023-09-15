@@ -190,7 +190,7 @@ function TestMock:test_mock_side_effect_array()
 	lu.assertEquals(mock_test_module.param("test"), 22)
 	lu.assertEquals(mock_test_module.param("test"), 33)
 	lu.assertErrorMsgContains(
-		"side_effect table is empty, or call count overflow happened",
+		"side_effect table call count overflow happened: call_count:4 #side_effect:3",
 		mock_test_module.param,
 		"test"
 	)

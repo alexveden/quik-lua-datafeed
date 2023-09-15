@@ -105,7 +105,7 @@ function HandlerBase.validate_custom_handler(custom_handler)
 	for _, m in pairs({ "init", "stop", "on_event" }) do
 		assert(custom_handler[m], custom_handler["name"] .. ": custom_handler expected to have " .. m .. "()")
 		assert(
-			type(custom_handler[m]) == "function",
+			type(custom_handler[m]) == "function" or custom_handler[m].__call,
 			custom_handler["name"] .. ": custom_handler expected to have " .. m .. "() as a function"
 		)
 	end

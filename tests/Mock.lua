@@ -231,8 +231,16 @@ function Mock:__call(...)
 			return self.side_effect(...)
 		else
 			if type(self.side_effect) == "table" then
+				assert(#self.side_effect > 0, "side_effect table is empty")
+
 				if self.call_count > #self.side_effect then
-					error("side_effect table is empty, or call count overflow happened")
+					error(
+						string.format(
+							"side_effect table call count overflow happened: call_count:%s #side_effect:%s",
+							self.call_count,
+							#self.side_effect
+						)
+					)
 				end
 
 				return self.side_effect[self.call_count]

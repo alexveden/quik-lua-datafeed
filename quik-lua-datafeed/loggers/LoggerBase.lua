@@ -53,7 +53,7 @@ function LoggerBase.validate_custom_logger(custom_logger)
 	for _, m in pairs({ "init", "log", "stop" }) do
 		assert(custom_logger[m], custom_logger['name'] .. ": custom_logger expected to have " .. m .. "()")
 		assert(
-			type(custom_logger[m]) == "function",
+			type(custom_logger[m]) == "function" or custom_logger[m].__call,
 			custom_logger['name'] .. ": custom_logger expected to have " .. m .. "() as a function"
 		)
 	end
