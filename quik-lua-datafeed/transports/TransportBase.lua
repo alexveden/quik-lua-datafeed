@@ -110,7 +110,7 @@ function TransportBase.validate_custom_transport(custom_transport)
 		assert(type(ser_key) == "string", "serialized key expected a string, got " .. type(ser_key))
 		assert(#ser_key > 0, "serialized key string is empty")
 
-		-- Check bad keys and make sure thansport also fails on them
+		-- Check bad keys and make sure transport also fails on them
 		for _, s in pairs({ { "test", nil, "fail" }, { nil }, {}, { "nonalpha!" } }) do
 			local isok, _ = pcall(custom_transport.serialize_key, custom_transport, s)
 			if isok then
