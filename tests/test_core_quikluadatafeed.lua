@@ -50,8 +50,8 @@ local function mock_transport(is_invalid)
 		init = Mock.func(),
 		send = Mock.func(),
 		is_init = Mock.func(),
-		serialize_key = TransportLog.serialize_key,
-		serialize_value = TransportLog.serialize_value,
+		serialize_key = TransportBase.serialize_key,
+		serialize_value = TransportBase.serialize_value,
 		stop = stop
 	}
 

@@ -25,8 +25,8 @@ function TransportMemcached.new(config)
 	self.host = config.host or "localhost"
 	self.port = config.port or 11211
 	self.exptime_sec = config.exptime_sec or (60 * 60)
-	self.serialize_key = config.serialize_key or TransportMemcached.serialize_key
-	self.serialize_value = config.serialize_value or TransportMemcached.serialize_value
+	self.serialize_key = config.serialize_key or TransportBase.serialize_key
+	self.serialize_value = config.serialize_value or TransportBase.serialize_value
 	self.memcached = nil
 
 	-- TransportBase.validate_custom_transport(self)
@@ -49,25 +49,6 @@ function TransportMemcached:stop()
 		self.memcached = nil
 	end
 	return true
-end
-
----Serializes key in transport specific notation (i.e. removing special chars from path)
----@param key string[] array of strings, like {'a', 'b', 'c'}
----@return string # serialized key, like a#b#c
----@diagnostic disable-next-line
-function TransportMemcached:serialize_key(key)
-	-- This one is mandatory for every custom transport
-	TransportBase.validate_key(key)
-
-	return table.concat(key, "#")
-end
-
----Serializes key in transport specific data (i.e. json)
----@param value {[string]: boolean | string | number | table | nil} table of data {a = 1, b = 'ok'}
----@return string # serialized value, like {"a": 1, "b": "ok"}
----@diagnostic disable-next-line
-function TransportMemcached:serialize_value(value)
-	return cjson.encode(value)
 end
 
 ---Sends key-value via transport route

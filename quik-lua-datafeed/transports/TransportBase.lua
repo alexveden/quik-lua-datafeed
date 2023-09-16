@@ -1,3 +1,6 @@
+local cjson = require("cjson")
+cjson.encode_invalid_numbers(true) -- enable Nan serialization in JSON
+
 ---@class TransportBase
 ---@field name string simple transport name
 TransportBase = {}
@@ -47,11 +50,13 @@ function TransportBase:send(key, value)
 end
 
 ---Serializes key in transport specific notation (i.e. removing special chars from path)
----@param key string[] array of strings (only alphanumeric [A-Za-z0-9_]), like {'a', 'b', 'c'}
+---@param key string[] array of strings, like {'a', 'b', 'c'}
 ---@return string # serialized key, like a#b#c
 ---@diagnostic disable-next-line
 function TransportBase:serialize_key(key)
-	error("You must implement serialize_key(key) function in custom transport class")
+	-- This one is mandatory for every custom transport
+	TransportBase.validate_key(key)
+	return table.concat(key, "#")
 end
 
 ---Serializes key in transport specific data (i.e. JSON)
@@ -59,7 +64,7 @@ end
 ---@return string # serialized value, like {"a": 1, "b": "ok"}
 ---@diagnostic disable-next-line
 function TransportBase:serialize_value(value)
-	error("You must implement serialize_value(value) function in custom transport class")
+	return cjson.encode(value)
 end
 
 function TransportBase:stop()
@@ -100,7 +105,7 @@ function TransportBase.validate_custom_transport(custom_transport)
 	for _, m in pairs({ "init", "send", "stop", "is_init", "serialize_key", "serialize_value" }) do
 		assert(custom_transport[m], custom_transport["name"] .. ": custom_transport expected to have " .. m .. "()")
 		assert(
-			type(custom_transport[m]) == "function" or custom_transport[m].__call,
+			type(custom_transport[m]) == "function" or custom_transport[m].__call or (custom_transport.__index and custom_transport.__index[m]),
 			custom_transport["name"] .. ": custom_transport expected to have " .. m .. "() as a function"
 		)
 	end
@@ -111,7 +116,7 @@ function TransportBase.validate_custom_transport(custom_transport)
 		assert(#ser_key > 0, "serialized key string is empty")
 
 		-- Check bad keys and make sure transport also fails on them
-		for _, s in pairs({ { "test", nil, "fail" }, { nil }, {}, { "nonalpha!" } }) do
+		for _, s in pairs({ { "test", nil, "fail" }, { nil }, {}, { "nonalpha!"}, {'no', ' whitespaces'} }) do
 			local isok, _ = pcall(custom_transport.serialize_key, custom_transport, s)
 			if isok then
 				error(

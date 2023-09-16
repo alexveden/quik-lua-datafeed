@@ -1,8 +1,6 @@
 --[[
 --  TransportLog simply prints all transport:send() into log (useful for debugging)
 --]]
-local cjson = require("cjson")
-cjson.encode_invalid_numbers(true) -- enable Nan serialization in JSON
 
 local TransportBase = require("transports.TransportBase")
 
@@ -35,24 +33,6 @@ end
 
 function TransportLog:stop()
 	return true
-end
-
----Serializes key in transport specific notation (i.e. removing special chars from path)
----@param key string[] array of strings, like {'a', 'b', 'c'}
----@return string # serialized key, like a#b#c
----@diagnostic disable-next-line
-function TransportLog:serialize_key(key)
-	-- This one is mandatory for every custom transport
-	TransportBase.validate_key(key)
-	return table.concat(key, "#")
-end
-
----Serializes key in transport specific data (i.e. JSON)
----@param value {[string]: boolean | string | number | table | nil} table of data {a = 1, b = 'ok'}
----@return string # serialized value, like {"a": 1, "b": "ok"}
----@diagnostic disable-next-line
-function TransportLog:serialize_value(value)
-	return cjson.encode(value)
 end
 
 ---Sends key-value via transport route

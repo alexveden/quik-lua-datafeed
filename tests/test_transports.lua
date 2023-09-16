@@ -11,6 +11,7 @@ local Mock = require("Mock")
 local TransportBase = require("transports.TransportBase")
 local TransportMemcached = require("transports.TransportMemcached")
 local TransportLog = require("transports.TransportLog")
+local TransportSocket = require("transports.TransportSocket")
 
 TestTransportBase = {}
 function TestTransportBase:setUp() end
@@ -35,14 +36,6 @@ function TestTransportBase:test_transport_methods()
 	lu.assertErrorMsgContains("You must implement stop() function in custom transport class", t.stop)
 	lu.assertErrorMsgContains("You must implement send(key, value) function in custom transport class", t.send)
 	lu.assertErrorMsgContains("You must implement is_init() function in custom transport class", t.is_init)
-	lu.assertErrorMsgContains(
-		"You must implement serialize_key(key) function in custom transport class",
-		t.serialize_key
-	)
-	lu.assertErrorMsgContains(
-		"You must implement serialize_value(value) function in custom transport class",
-		t.serialize_value
-	)
 end
 
 function TestTransportBase:test_validate_custom_transport()
@@ -213,8 +206,8 @@ function TestTransportBase:test_memcached_new()
 	lu.assertEquals(l.port, 11211)
 	lu.assertEquals(l.exptime_sec, 3600)
 	lu.assertEquals(l.memcached, nil)
-	lu.assertEquals(l.serialize_key, TransportMemcached.serialize_key)
-	lu.assertEquals(l.serialize_value, TransportMemcached.serialize_value)
+	lu.assertEquals(l.serialize_key, TransportBase.serialize_key)
+	lu.assertEquals(l.serialize_value, TransportBase.serialize_value)
 	lu.assertEquals(l:is_init(), false)
 end
 
@@ -303,6 +296,27 @@ function TestTransportBase:test_transport_log()
 	lu.assertEquals(mock_log.call_args[1][2], "TransportLog:send() -> %s: %s")
 	lu.assertEquals(mock_log.call_args[1][3], "test#my#log")
 	lu.assertEquals(mock_log.call_args[1][4], '{"data":1}')
+end
+
+function TestTransportBase:test_transport_socket()
+	local t = TransportSocket.new({ host = "localhost", port = 17123 })
+	TransportBase.validate_custom_transport(t)
+
+	lu.assertEquals(t.name, "TransportSocket")
+	lu.assertEquals(t:is_init(), false)
+	assert(t:init())
+	lu.assertEquals(t:is_init(), true)
+	lu.assertEquals("127.0.0.1", t.socket:getpeername())
+
+
+	t.socket = { send = Mock.func() }
+	t:send({ "test", "my", "log" }, { data = 1 })
+
+	lu.assertEquals(t.socket.send.call_count, 1)
+	lu.assertEquals(t.socket.send.call_args[1][2], 'test#my#log {"data":1}')
+
+	assert(t:stop())
+	lu.assertEquals(t:is_init(), false)
 end
 
 os.exit(lu.LuaUnit.run())
