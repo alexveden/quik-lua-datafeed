@@ -4,7 +4,7 @@ import aiomcache
 import asyncio
 import json
 import pprint
-# orjson faster alternative: pip install orjson 
+# orjson faster alternative: pip install orjson
 
 
 async def main():
