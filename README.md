@@ -50,12 +50,13 @@ Transport одновременно выполняет роль интерфей�
 
 * TransportLog - пишет JSON в logger (полезно для отладки)
 * TransportMemcached - сохраняет данные в Memcached server, с ключами вида "quik#status", данные JSON
+* TransportSocket - передает данные через UDP socket, с ключами вида "quik#status", данные JSON
 
 
 ## Виды loggers
 см. `quik-lua-datafeed/loggers`
 * LoggerFile - пишет лог в файл
-* LoggerSocker - пишет лог в UDP socket (см. сервер для чтения логов на Python `examples/socket_logger_server.py`)
+* LoggerSocket - пишет лог в UDP socket (сервер для чтения логов на Python `examples/socket_logger_server.py`)
 * LoggerPrintDbgStr - лог через функцию `PrintDbgStr()`
 * LoggerMulti - позволяет комбинировать несколько логгеров в 1
 
@@ -75,7 +76,7 @@ luarocks install luaunit
 luarocks install luacov
 luarocks install luacov-html
 ```
-4. Пишите тесты, см. папку `/test/`
+4. Пишите тесты, в каталог `/test/`
 
 ## Обратная связь
 Буду рад любым вопросам в issues, и не забудьте поставить звезду если пользуетесь проектом!
