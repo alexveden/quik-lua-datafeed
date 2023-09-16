@@ -2,7 +2,7 @@
 --  TransportLog simply prints all transport:send() into log (useful for debugging)
 --]]
 local cjson = require("cjson")
-cjson.encode_invalid_numbers(true) -- enable Nan serialization in json
+cjson.encode_invalid_numbers(true) -- enable Nan serialization in JSON
 
 local TransportBase = require("transports.TransportBase")
 
@@ -47,7 +47,7 @@ function TransportLog:serialize_key(key)
 	return table.concat(key, "#")
 end
 
----Serializes key in transport specific data (i.e. json)
+---Serializes key in transport specific data (i.e. JSON)
 ---@param value {[string]: boolean | string | number | table | nil} table of data {a = 1, b = 'ok'}
 ---@return string # serialized value, like {"a": 1, "b": "ok"}
 ---@diagnostic disable-next-line

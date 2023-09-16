@@ -54,7 +54,7 @@ function TransportBase:serialize_key(key)
 	error("You must implement serialize_key(key) function in custom transport class")
 end
 
----Serializes key in transport specific data (i.e. json)
+---Serializes key in transport specific data (i.e. JSON)
 ---@param value {[string]: boolean | string | number | table | nil} table of data {a = 1, b = 'ok'}
 ---@return string # serialized value, like {"a": 1, "b": "ok"}
 ---@diagnostic disable-next-line
